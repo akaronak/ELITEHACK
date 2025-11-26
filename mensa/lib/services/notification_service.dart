@@ -1,18 +1,20 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-// Top-level function for background message handling
-// MUST be top-level or static
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Handling a background message: ${message.messageId}');
-  print('Message data: ${message.data}');
-  print('Message notification: ${message.notification?.title}');
-}
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    // Initialize timezone
+    tz.initializeTimeZones();
+
+    // Initialize local notifications
+    await _initializeLocalNotifications();
+
     // Request permission for iOS and Android 13+
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
@@ -34,34 +36,35 @@ class NotificationService {
     String? token = await _firebaseMessaging.getToken();
     print('📱 FCM Token: $token');
     print('📋 Copy this token to test notifications from Firebase Console');
-    // TODO: Send this token to your backend server
 
     // Listen for token refresh
     _firebaseMessaging.onTokenRefresh.listen((newToken) {
       print('🔄 FCM Token refreshed: $newToken');
-      // TODO: Send updated token to your backend server
     });
 
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('📨 Got a message in the foreground!');
+      print('� G ot a message in the foreground!');
       print('Message data: ${message.data}');
 
       if (message.notification != null) {
         print('📬 Notification: ${message.notification!.title}');
         print('📝 Body: ${message.notification!.body}');
-        // Notification will be displayed by the system automatically
+
+        // Display local notification when app is in foreground
+        _showLocalNotification(
+          title: message.notification!.title ?? 'Mensa',
+          body: message.notification!.body ?? '',
+          payload: message.data.toString(),
+        );
       }
     });
-
-    // Handle background messages
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     // Handle notification taps when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('🔔 Notification tapped! Opening app...');
       print('Message data: ${message.data}');
-      // TODO: Navigate to specific screen based on message data
+      _handleNotificationTap(message.data);
     });
 
     // Check if app was opened from a terminated state via notification
@@ -70,8 +73,93 @@ class NotificationService {
     if (initialMessage != null) {
       print('🚀 App opened from terminated state via notification');
       print('Message data: ${initialMessage.data}');
-      // TODO: Navigate to specific screen based on message data
+      _handleNotificationTap(initialMessage.data);
     }
+  }
+
+  Future<void> _initializeLocalNotifications() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+
+    const InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        print('Notification tapped: ${response.payload}');
+        if (response.payload != null) {
+          _handleNotificationTap({'payload': response.payload});
+        }
+      },
+    );
+
+    // Create notification channel for Android
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'pregnancy_tracker_channel',
+      'Pregnancy Tracker Notifications',
+      description: 'Notifications for pregnancy tracking and health reminders',
+      importance: Importance.high,
+      playSound: true,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(channel);
+  }
+
+  Future<void> _showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'pregnancy_tracker_channel',
+          'Pregnancy Tracker Notifications',
+          channelDescription:
+              'Notifications for pregnancy tracking and health reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          showWhen: true,
+          icon: '@mipmap/ic_launcher',
+        );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      details,
+      payload: payload,
+    );
+  }
+
+  void _handleNotificationTap(Map<String, dynamic> data) {
+    // Handle navigation based on notification data
+    print('Handling notification tap with data: $data');
+    // TODO: Implement navigation logic based on notification type
   }
 
   Future<String?> getToken() async {
@@ -88,5 +176,57 @@ class NotificationService {
   Future<void> unsubscribeFromTopic(String topic) async {
     await _firebaseMessaging.unsubscribeFromTopic(topic);
     print('❌ Unsubscribed from topic: $topic');
+  }
+
+  // Schedule a local notification
+  Future<void> scheduleNotification({
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+  }) async {
+    try {
+      final tz.TZDateTime tzScheduledDate = tz.TZDateTime.from(
+        scheduledDate,
+        tz.local,
+      );
+
+      await _localNotifications.zonedSchedule(
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title,
+        body,
+        tzScheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'pregnancy_tracker_channel',
+            'Pregnancy Tracker Notifications',
+            channelDescription:
+                'Notifications for pregnancy tracking and health reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      print('Error scheduling notification: $e');
+      // Fallback: show immediate notification instead
+      await _showLocalNotification(title: title, body: body);
+    }
+  }
+
+  // Show immediate notification (simpler, no scheduling)
+  Future<void> showImmediateNotification({
+    required String title,
+    required String body,
+  }) async {
+    await _showLocalNotification(title: title, body: body);
+  }
+
+  // Cancel all notifications
+  Future<void> cancelAllNotifications() async {
+    await _localNotifications.cancelAll();
   }
 }

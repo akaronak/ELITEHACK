@@ -44,8 +44,19 @@ router.post('/chat/menstruation', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     
+    // Get user profile for personalized responses
+    const db = require('../services/database');
+    const userProfile = db.get('userProfiles')
+      .find({ user_id: userId })
+      .value();
+    
     const geminiService = require('../services/geminiService');
-    const response = await geminiService.chatMenstruation(userId, message, history || []);
+    const response = await geminiService.chatMenstruation(
+      userId, 
+      message, 
+      history || [],
+      userProfile
+    );
     
     res.json({ response });
   } catch (error) {

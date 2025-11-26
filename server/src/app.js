@@ -3,6 +3,10 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
+// Initialize database
+const db = require('./services/database');
+console.log('✅ Database initialized');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,20 +17,24 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 const userRoutes = require('./routes/users.routes');
+const userProfileRoutes = require('./routes/userProfile.routes');
 const logsRoutes = require('./routes/logs.routes');
 const aiRoutes = require('./routes/ai.routes');
 const nutritionRoutes = require('./routes/nutrition.routes');
 const checklistRoutes = require('./routes/checklist.routes');
 const breathingRoutes = require('./routes/breathing.routes');
 const menstruationRoutes = require('./routes/menstruation.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 app.use('/api/user', userRoutes);
+app.use('/api/user', userProfileRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/checklist', checklistRoutes);
 app.use('/api/breathing', breathingRoutes);
 app.use('/api/menstruation', menstruationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

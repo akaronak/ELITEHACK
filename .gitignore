@@ -29,6 +29,9 @@ server/.env
 mensa/android/app/google-services.json
 mensa/ios/Runner/GoogleService-Info.plist
 google-services.json
+firebase-service-account.json
+*-service-account.json
+server/firebase-service-account.json
 
 # API Keys and Secrets
 **/api_keys.dart
@@ -72,6 +75,7 @@ coverage/
 *.db
 *.sqlite
 *.sqlite3
+server/data/db.json
 
 # Misc
 .metadata

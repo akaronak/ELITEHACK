@@ -53,6 +53,9 @@ dependencies:
   # Calendar
   table_calendar: ^3.0.9
   
+  # Local notifications
+  flutter_local_notifications: ^17.0.0
+  
   # Firebase for push notifications
   firebase_core: ^2.24.2
   firebase_messaging: ^14.7.9
@@ -73,6 +76,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  
+  # App icon generator
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -90,6 +96,7 @@ flutter:
     - assets/data/
     - assets/images/
     - assets/animations/
+    - assets/icon/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -116,3 +123,21 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/appicon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true  # Remove alpha channel for App Store compliance
+  web:
+    generate: true
+    image_path: "assets/icon/appicon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon/appicon.png"
+  macos:
+    generate: true
+    image_path: "assets/icon/appicon.png"

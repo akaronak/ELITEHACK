@@ -70,6 +70,7 @@ Your role:
 - Explain normal vs concerning symptoms
 - Suggest when to seek medical attention
 - Be supportive and non-judgmental
+- Personalize responses based on user's profile when available
 
 Guidelines:
 - Use clear, simple language
@@ -78,6 +79,8 @@ Guidelines:
 - Always include safety disclaimers for medical concerns
 - Encourage professional medical consultation when appropriate
 - Keep responses concise but comprehensive
+- Consider user's age, medical conditions, and allergies when giving advice
+- Adjust recommendations based on BMI and physical health
 
 Topics you can help with:
 - Menstrual cycle patterns and irregularities
@@ -131,10 +134,11 @@ Always include: "⚕️ Please consult your healthcare provider for personalized
     return prompts[type] || prompts.general;
   }
 
-  async chatMenstruation(userId, message, history = []) {
+  async chatMenstruation(userId, message, history = [], userProfile = null) {
     return await this.generateResponse(message, {
       type: 'menstruation',
       history: history.slice(-5), // Last 5 messages for context
+      userData: userProfile,
     });
   }
 

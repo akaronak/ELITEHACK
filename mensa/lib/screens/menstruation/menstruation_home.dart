@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
+import 'cycle_setup_screen.dart';
 
 class MenstruationHome extends StatefulWidget {
   final String userId;
@@ -23,6 +24,16 @@ class _MenstruationHomeState extends State<MenstruationHome> {
   int _currentCycleDay = 1;
   String _currentPhase = 'Menstrual Phase';
   bool _isLoading = true;
+  bool _needsSetup = false;
+
+  // Soft, calming colors
+  static const Color _primaryPink = Color(0xFFE8C4C4);
+  static const Color _lightPink = Color(0xFFF5E6E6);
+  static const Color _accentPink = Color(0xFFD4A5A5);
+  static const Color _darkPink = Color(0xFFA67C7C);
+  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  static const Color _greenMood = Color(0xFFB8D4C8);
+  static const Color _purpleMood = Color(0xFFD4C4E8);
 
   final List<String> _flowLevels = [
     'Light',
@@ -31,6 +42,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     'Spotting',
     'None',
   ];
+
   final List<String> _moods = [
     'Happy',
     'Sad',
@@ -40,6 +52,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     'Energetic',
     'Tired',
   ];
+
   final List<String> _symptoms = [
     'Cramps',
     'Headache',
@@ -63,6 +76,17 @@ class _MenstruationHomeState extends State<MenstruationHome> {
 
     try {
       final apiService = ApiService();
+
+      final logs = await apiService.getMenstruationLogs(widget.userId);
+
+      if (logs.isEmpty) {
+        setState(() {
+          _needsSetup = true;
+          _isLoading = false;
+        });
+        return;
+      }
+
       final predictions = await apiService.getMenstruationPredictions(
         widget.userId,
       );
@@ -73,6 +97,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
           _currentCycleDay = _calculateCurrentCycleDay(predictions);
           _currentPhase = _getCyclePhase(_currentCycleDay);
           _isLoading = false;
+          _needsSetup = false;
         });
       } else {
         setState(() => _isLoading = false);
@@ -118,343 +143,639 @@ class _MenstruationHomeState extends State<MenstruationHome> {
 
   @override
   Widget build(BuildContext context) {
+    if (_needsSetup && !_isLoading) {
+      return CycleSetupScreen(
+        userId: widget.userId,
+        onComplete: () {
+          setState(() {
+            _needsSetup = false;
+          });
+          _loadPredictions();
+        },
+      );
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F7),
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
-        title: const Text('Menstruation Tracker'),
-        backgroundColor: const Color(0xFFFFB6C1),
+        backgroundColor: _backgroundColor,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.black87),
+          onPressed: () {},
+        ),
+        title: const Text(
+          'Cycle Tracker',
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      CycleHistoryScreen(userId: widget.userId),
+            icon: const Icon(
+              Icons.notifications_outlined,
+              color: Colors.black87,
+            ),
+            onPressed: () async {
+              // Show test menu
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: const Text('Test Notifications'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.notifications_active),
+                        title: const Text('Immediate'),
+                        subtitle: const Text('Show notification now'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          final notificationService = NotificationService();
+                          await notificationService.showImmediateNotification(
+                            title: '🌸 Immediate Test',
+                            body: 'This notification appeared instantly!',
+                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  '✅ Immediate notification sent!',
+                                ),
+                                backgroundColor: _greenMood,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.schedule),
+                        title: const Text('Scheduled (10s)'),
+                        subtitle: const Text('Test background notification'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          final notificationService = NotificationService();
+                          await notificationService.scheduleNotification(
+                            title: '🌸 Background Test',
+                            body:
+                                'This notification was scheduled! Close the app to test background.',
+                            scheduledDate: DateTime.now().add(
+                              const Duration(seconds: 10),
+                            ),
+                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  '⏰ Notification scheduled in 10 seconds!\nClose the app to test background.',
+                                ),
+                                backgroundColor: _darkPink,
+                                duration: const Duration(seconds: 5),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.schedule_send),
+                        title: const Text('Scheduled (30s)'),
+                        subtitle: const Text('Longer background test'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          final notificationService = NotificationService();
+                          await notificationService.scheduleNotification(
+                            title: '🌸 Period Reminder',
+                            body:
+                                'Your next period is expected in ${_getDaysUntilNextPeriod()}',
+                            scheduledDate: DateTime.now().add(
+                              const Duration(seconds: 30),
+                            ),
+                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  '⏰ Notification scheduled in 30 seconds!\nMinimize the app to test.',
+                                ),
+                                backgroundColor: _darkPink,
+                                duration: const Duration(seconds: 5),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
                 ),
               );
             },
-            tooltip: 'View History & AI Insights',
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Card
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFB6C1),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              padding: const EdgeInsets.all(24),
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    )
-                  : Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: _accentPink))
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Cycle Day Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [_primaryPink, _lightPink],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _primaryPink.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Day $_currentCycleDay',
+                            style: const TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _currentPhase,
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black.withOpacity(0.6),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStatChip(
+                                'Next Period',
+                                _getDaysUntilNextPeriod(),
+                                Icons.calendar_today,
+                              ),
+                              _buildStatChip(
+                                'Avg Cycle',
+                                '${_predictions?['average_cycle_length'] ?? 28} days',
+                                Icons.repeat,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Quick Actions
+                    Row(
                       children: [
-                        Text(
-                          'Day $_currentCycleDay of Cycle',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        Expanded(
+                          child: _buildActionButton(
+                            'Calendar',
+                            Icons.calendar_month,
+                            _greenMood,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      CycleHistoryScreen(userId: widget.userId),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _currentPhase,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildActionButton(
+                            'Talk to AI',
+                            Icons.chat_bubble_outline,
+                            _purpleMood,
+                            () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MenstruationAIChatScreen(
+                                        userId: widget.userId,
+                                      ),
+                                ),
+                              );
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildStatChip(
-                              'Next Period',
-                              _getDaysUntilNextPeriod(),
-                            ),
-                            _buildStatChip(
-                              'Avg Cycle',
-                              '${_predictions?['average_cycle_length'] ?? 28} days',
-                            ),
-                          ],
                         ),
                       ],
                     ),
-            ),
 
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Today's Date
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.today,
-                        color: Color(0xFFFF69B4),
-                      ),
-                      title: const Text('Today'),
-                      subtitle: Text(
-                        DateFormat('EEEE, MMMM d, y').format(DateTime.now()),
+                    const SizedBox(height: 32),
+
+                    // Today's Log Section
+                    const Text(
+                      'Log Today',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
 
-                  const SizedBox(height: 20),
-
-                  // Flow Level
-                  const Text(
-                    'Flow Level',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _flowLevels.map((level) {
-                      return ChoiceChip(
-                        label: Text(level),
-                        selected: _flowLevel == level,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _flowLevel = level);
-                        },
-                        selectedColor: const Color(0xFFFFB6C1),
-                        labelStyle: TextStyle(
-                          color: _flowLevel == level
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Mood
-                  const Text(
-                    'How are you feeling?',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _moods.map((mood) {
-                      return ChoiceChip(
-                        label: Text(mood),
-                        selected: _mood == mood,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _mood = mood);
-                        },
-                        selectedColor: const Color(0xFFDDA0DD),
-                        labelStyle: TextStyle(
-                          color: _mood == mood ? Colors.white : Colors.black,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Symptoms
-                  const Text(
-                    'Symptoms',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _symptoms.map((symptom) {
-                      final isSelected = _selectedSymptoms.contains(symptom);
-                      return FilterChip(
-                        label: Text(symptom),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedSymptoms.add(symptom);
-                            } else {
-                              _selectedSymptoms.remove(symptom);
-                            }
-                          });
-                        },
-                        selectedColor: const Color(0xFF98D8C8),
-                        checkmarkColor: Colors.white,
-                        labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // AI Insights Card
-                  Card(
-                    color: const Color(0xFFE8F4F8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    // Flow Level
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(
-                                Icons.lightbulb,
-                                color: Color(0xFF2196F3),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _primaryPink.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.water_drop,
+                                  color: _darkPink,
+                                  size: 20,
+                                ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               const Text(
-                                'AI Insights',
+                                'Flow Level',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Your cycle has been regular for the past 3 months. '
-                            'Based on your patterns, your next period is expected in 14 days.',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            '✓ No abnormalities detected',
-                            style: TextStyle(
-                              color: Color(0xFF4CAF50),
-                              fontWeight: FontWeight.bold,
-                            ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _flowLevels.map((level) {
+                              final isSelected = _flowLevel == level;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() => _flowLevel = level);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? _primaryPink
+                                        : _lightPink,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    level,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
                         ],
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-                  // Action Buttons Row
-                  Row(
-                    children: [
-                      // View History Button
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    CycleHistoryScreen(userId: widget.userId),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.history),
-                          label: const Text('View History'),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(0, 56),
-                            backgroundColor: const Color(0xFF2196F3),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                    // Mood
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
-                      // Talk to AI Button
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MenstruationAIChatScreen(
-                                  userId: widget.userId,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _greenMood.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.mood,
+                                  color: _greenMood,
+                                  size: 20,
                                 ),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.chat_bubble),
-                          label: const Text('Talk to AI'),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(0, 56),
-                            backgroundColor: const Color(0xFFBA68C8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'How are you feeling?',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _moods.map((mood) {
+                              final isSelected = _mood == mood;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() => _mood = mood);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? _greenMood
+                                        : _greenMood.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    mood,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Symptoms
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _purpleMood.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.healing,
+                                  color: _purpleMood,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Symptoms',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _symptoms.map((symptom) {
+                              final isSelected = _selectedSymptoms.contains(
+                                symptom,
+                              );
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selectedSymptoms.remove(symptom);
+                                    } else {
+                                      _selectedSymptoms.add(symptom);
+                                    }
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? _purpleMood
+                                        : _purpleMood.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    symptom,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveLog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _darkPink,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Save Today\'s Log',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Save Button
-                  ElevatedButton(
-                    onPressed: _saveLog,
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 56),
-                      backgroundColor: const Color(0xFFFFB6C1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
                     ),
-                    child: const Text(
-                      'Save Today\'s Log',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
 
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildStatChip(String label, String value) {
+  Widget _buildStatChip(String label, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
+          Icon(icon, color: _darkPink, size: 20),
+          const SizedBox(height: 4),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black87,
             ),
           ),
           Text(
             label,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black.withOpacity(0.6),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -470,12 +791,10 @@ class _MenstruationHomeState extends State<MenstruationHome> {
       'notes': '',
     };
 
-    // Save to backend
     final apiService = ApiService();
     final success = await apiService.addMenstruationLog(log);
 
     if (success) {
-      // Reload predictions after saving
       await _loadPredictions();
     }
 
@@ -487,9 +806,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                 ? 'Cycle log saved successfully! 📅'
                 : 'Failed to save log. Please try again.',
           ),
-          backgroundColor: success
-              ? const Color(0xFF4CAF50)
-              : const Color(0xFFF44336),
+          backgroundColor: success ? _greenMood : Colors.red,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

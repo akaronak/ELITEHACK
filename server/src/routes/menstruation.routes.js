@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-// In-memory storage for demo
-const menstruationLogs = new Map();
-const cycleData = new Map();
+const db = require('../services/database');
 
 // Add menstruation log
 router.post('/:userId/log', (req, res) => {
@@ -16,17 +13,16 @@ router.post('/:userId/log', (req, res) => {
       created_at: new Date().toISOString(),
     };
 
-    if (!menstruationLogs.has(userId)) {
-      menstruationLogs.set(userId, []);
-    }
-
-    menstruationLogs.get(userId).push(log);
+    db.get('menstruationLogs')
+      .push(log)
+      .write();
     
     // Update cycle data
     updateCycleData(userId);
 
     res.status(201).json(log);
   } catch (error) {
+    console.error('Error adding log:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -34,9 +30,15 @@ router.post('/:userId/log', (req, res) => {
 // Get menstruation logs
 router.get('/:userId/logs', (req, res) => {
   try {
-    const logs = menstruationLogs.get(req.params.userId) || [];
-    res.json(logs.sort((a, b) => new Date(b.date) - new Date(a.date)));
+    const logs = db.get('menstruationLogs')
+      .filter({ user_id: req.params.userId })
+      .sortBy('date')
+      .reverse()
+      .value();
+    
+    res.json(logs);
   } catch (error) {
+    console.error('Error fetching logs:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -44,7 +46,9 @@ router.get('/:userId/logs', (req, res) => {
 // Get predictions
 router.get('/:userId/predictions', (req, res) => {
   try {
-    const data = cycleData.get(req.params.userId);
+    const data = db.get('cycleData')
+      .find({ user_id: req.params.userId })
+      .value();
     
     if (!data) {
       return res.json({
@@ -56,6 +60,7 @@ router.get('/:userId/predictions', (req, res) => {
 
     res.json(data);
   } catch (error) {
+    console.error('Error fetching predictions:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -63,7 +68,11 @@ router.get('/:userId/predictions', (req, res) => {
 // Get statistics
 router.get('/:userId/stats', (req, res) => {
   try {
-    const logs = menstruationLogs.get(req.params.userId) || [];
+    const logs = db.get('menstruationLogs')
+      .filter({ user_id: req.params.userId })
+      .sortBy('date')
+      .reverse()
+      .value();
     
     if (logs.length === 0) {
       return res.json({
@@ -71,6 +80,7 @@ router.get('/:userId/stats', (req, res) => {
         common_symptoms: [],
         mood_patterns: {},
         flow_patterns: {},
+        insights: [],
       });
     }
 
@@ -107,105 +117,143 @@ router.get('/:userId/stats', (req, res) => {
       common_symptoms: commonSymptoms,
       mood_patterns: moods,
       flow_patterns: flows,
-      insights: generateInsights(logs, commonSymptoms),
+      insights: generateInsights(req.params.userId, logs, commonSymptoms),
     });
   } catch (error) {
+    console.error('Error fetching stats:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Helper function to update cycle data
 function updateCycleData(userId) {
-  const logs = menstruationLogs.get(userId) || [];
+  try {
+    const logs = db.get('menstruationLogs')
+      .filter({ user_id: userId })
+      .sortBy('date')
+      .reverse()
+      .value();
   
-  if (logs.length < 2) return;
+    if (logs.length < 2) return;
 
-  // Find period start dates (when flow changes from None to any flow)
-  const periodStarts = [];
-  for (let i = 0; i < logs.length - 1; i++) {
-    const current = logs[i];
-    const previous = logs[i + 1];
-    
-    if (current.flow_level !== 'None' && 
-        (previous.flow_level === 'None' || i === logs.length - 2)) {
-      periodStarts.push(new Date(current.date));
-    }
-  }
-
-  if (periodStarts.length >= 2) {
-    // Calculate average cycle length
-    const cycleLengths = [];
-    for (let i = 0; i < periodStarts.length - 1; i++) {
-      const diff = Math.abs(periodStarts[i] - periodStarts[i + 1]);
-      const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      cycleLengths.push(days);
+    // Find period start dates (when flow changes from None to any flow)
+    const periodStarts = [];
+    for (let i = 0; i < logs.length - 1; i++) {
+      const current = logs[i];
+      const previous = logs[i + 1];
+      
+      if (current.flow_level !== 'None' && 
+          (previous.flow_level === 'None' || i === logs.length - 2)) {
+        periodStarts.push(new Date(current.date));
+      }
     }
 
-    const avgLength = Math.round(
-      cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length
-    );
+    if (periodStarts.length >= 2) {
+      // Calculate average cycle length
+      const cycleLengths = [];
+      for (let i = 0; i < periodStarts.length - 1; i++) {
+        const diff = Math.abs(periodStarts[i] - periodStarts[i + 1]);
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        cycleLengths.push(days);
+      }
 
-    // Calculate regularity (how consistent the cycles are)
-    const variance = cycleLengths.reduce((sum, length) => {
-      return sum + Math.pow(length - avgLength, 2);
-    }, 0) / cycleLengths.length;
-    
-    const regularity = Math.max(0, 100 - (variance * 5));
+      const avgLength = Math.round(
+        cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length
+      );
 
-    // Predict next period
-    const lastPeriod = periodStarts[0];
-    const nextPeriod = new Date(lastPeriod);
-    nextPeriod.setDate(nextPeriod.getDate() + avgLength);
+      // Calculate regularity (how consistent the cycles are)
+      const variance = cycleLengths.reduce((sum, length) => {
+        return sum + Math.pow(length - avgLength, 2);
+      }, 0) / cycleLengths.length;
+      
+      const regularity = Math.max(0, 100 - (variance * 5));
 
-    cycleData.set(userId, {
-      user_id: userId,
-      average_cycle_length: avgLength,
-      last_period_start: lastPeriod.toISOString(),
-      predicted_next_period: nextPeriod.toISOString(),
-      cycle_regularity: Math.round(regularity),
-      updated_at: new Date().toISOString(),
-    });
+      // Predict next period
+      const lastPeriod = periodStarts[0];
+      const nextPeriod = new Date(lastPeriod);
+      nextPeriod.setDate(nextPeriod.getDate() + avgLength);
+
+      const cycleData = {
+        user_id: userId,
+        average_cycle_length: avgLength,
+        last_period_start: lastPeriod.toISOString(),
+        predicted_next_period: nextPeriod.toISOString(),
+        cycle_regularity: Math.round(regularity),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update or create cycle data
+      const existing = db.get('cycleData')
+        .find({ user_id: userId })
+        .value();
+
+      if (existing) {
+        db.get('cycleData')
+          .find({ user_id: userId })
+          .assign(cycleData)
+          .write();
+      } else {
+        db.get('cycleData')
+          .push(cycleData)
+          .write();
+      }
+    }
+  } catch (error) {
+    console.error('Error updating cycle data:', error);
   }
 }
 
 // Helper function to generate AI insights
-function generateInsights(logs, commonSymptoms) {
+function generateInsights(userId, logs, commonSymptoms) {
   const insights = [];
 
-  // Cycle regularity insight
-  const data = cycleData.get(logs[0].user_id);
-  if (data) {
-    if (data.cycle_regularity >= 90) {
+  try {
+    // Cycle regularity insight
+    const data = db.get('cycleData')
+      .find({ user_id: userId })
+      .value();
+      
+    if (data) {
+      if (data.cycle_regularity >= 90) {
+        insights.push({
+          type: 'positive',
+          title: 'Regular Cycle',
+          message: `Your cycle has been very regular with an average length of ${data.average_cycle_length} days. This is a good sign of hormonal balance.`,
+        });
+      } else if (data.cycle_regularity < 70) {
+        insights.push({
+          type: 'warning',
+          title: 'Irregular Cycle',
+          message: 'Your cycle shows some irregularity. Consider tracking for a few more months. If it persists, consult your healthcare provider.',
+        });
+      } else {
+        insights.push({
+          type: 'info',
+          title: 'Cycle Pattern',
+          message: `Your cycle has an average length of ${data.average_cycle_length} days with ${data.cycle_regularity}% regularity.`,
+        });
+      }
+    }
+
+    // Symptom insights
+    if (commonSymptoms.length > 0) {
+      const topSymptom = commonSymptoms[0];
       insights.push({
-        type: 'positive',
-        title: 'Regular Cycle',
-        message: `Your cycle has been very regular with an average length of ${data.average_cycle_length} days. This is a good sign of hormonal balance.`,
-      });
-    } else if (data.cycle_regularity < 70) {
-      insights.push({
-        type: 'warning',
-        title: 'Irregular Cycle',
-        message: 'Your cycle shows some irregularity. Consider tracking for a few more months. If it persists, consult your healthcare provider.',
+        type: 'info',
+        title: 'Common Symptoms',
+        message: `You most frequently experience ${topSymptom.symptom.toLowerCase()} (${topSymptom.percentage}% of logged days). This is common during menstruation.`,
       });
     }
-  }
 
-  // Symptom insights
-  if (commonSymptoms.length > 0) {
-    const topSymptom = commonSymptoms[0];
+    // Recommendations
     insights.push({
-      type: 'info',
-      title: 'Common Symptoms',
-      message: `You most frequently experience ${topSymptom.symptom.toLowerCase()} (${topSymptom.percentage}% of logged days). This is common during menstruation.`,
+      type: 'recommendation',
+      title: 'Health Tips',
+      message: '• Stay hydrated during your period\n• Light exercise can help with cramps\n• Iron-rich foods can help prevent fatigue\n• Track symptoms for better predictions',
     });
+  } catch (error) {
+    console.error('Error generating insights:', error);
   }
-
-  // Recommendations
-  insights.push({
-    type: 'recommendation',
-    title: 'Health Tips',
-    message: '• Stay hydrated during your period\n• Light exercise can help with cramps\n• Iron-rich foods can help prevent fatigue\n• Track symptoms for better predictions',
-  });
 
   return insights;
 }

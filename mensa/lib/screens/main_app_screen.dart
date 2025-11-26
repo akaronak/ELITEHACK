@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import 'onboarding/user_profile_setup_screen.dart';
 import 'menstruation/menstruation_home.dart';
 import 'menopause/menopause_home.dart';
 import 'pregnancy/pregnancy_home.dart';
@@ -14,6 +16,8 @@ class MainAppScreen extends StatefulWidget {
 
 class _MainAppScreenState extends State<MainAppScreen> {
   int _currentIndex = 0;
+  bool _isLoading = true;
+  bool _hasProfile = false;
 
   late final List<Widget> _screens;
 
@@ -25,10 +29,44 @@ class _MainAppScreenState extends State<MainAppScreen> {
       MenopauseHome(userId: widget.userId),
       PregnancyHome(userId: widget.userId),
     ];
+    _checkProfile();
+  }
+
+  Future<void> _checkProfile() async {
+    try {
+      final apiService = ApiService();
+      final profile = await apiService.getUserProfile(widget.userId);
+
+      setState(() {
+        _hasProfile = profile != null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error checking profile: $e');
+      setState(() {
+        _hasProfile = false;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_hasProfile) {
+      return UserProfileSetupScreen(
+        userId: widget.userId,
+        onComplete: () {
+          setState(() {
+            _hasProfile = true;
+          });
+        },
+      );
+    }
+
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(

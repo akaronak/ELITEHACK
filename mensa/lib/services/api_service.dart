@@ -41,6 +41,30 @@ class ApiService {
     }
   }
 
+  Future<bool> createPregnancyProfile(
+    String userId,
+    DateTime lmp,
+    DateTime dueDate,
+  ) async {
+    try {
+      final now = DateTime.now();
+      final profile = UserPregnancy(
+        userId: userId,
+        lmpDate: lmp,
+        dueDate: dueDate,
+        allergies: [],
+        preferences: [],
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      return await createOrUpdatePregnancyProfile(profile);
+    } catch (e) {
+      print('Error creating pregnancy profile: $e');
+      return false;
+    }
+  }
+
   // Weekly Progress
   Future<Map<String, dynamic>?> getWeekProgress(String userId, int week) async {
     try {
@@ -308,6 +332,38 @@ class ApiService {
       return null;
     } catch (e) {
       print('Error generating report: $e');
+      return null;
+    }
+  }
+
+  // User Profile
+  Future<bool> saveUserProfile(dynamic profile) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/user/${profile.userId}/profile'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(profile.toJson()),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('Error saving user profile: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/user/$userId/profile'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching user profile: $e');
       return null;
     }
   }
