@@ -10,6 +10,7 @@ class UserProfile {
   final List<String> medications;
   final String? emergencyContact;
   final String? emergencyPhone;
+  final String? emergencyEmail;
   final String trackerType; // 'pregnancy', 'menstruation', 'menopause'
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -26,6 +27,7 @@ class UserProfile {
     this.medications = const [],
     this.emergencyContact,
     this.emergencyPhone,
+    this.emergencyEmail,
     this.trackerType = 'menstruation',
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -45,6 +47,7 @@ class UserProfile {
       'medications': medications,
       'emergency_contact': emergencyContact,
       'emergency_phone': emergencyPhone,
+      'emergency_email': emergencyEmail,
       'tracker_type': trackerType,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -64,6 +67,7 @@ class UserProfile {
       medications: List<String>.from(json['medications'] ?? []),
       emergencyContact: json['emergency_contact'],
       emergencyPhone: json['emergency_phone'],
+      emergencyEmail: json['emergency_email'],
       trackerType: json['tracker_type'] ?? 'menstruation',
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),

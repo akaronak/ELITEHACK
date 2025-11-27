@@ -397,95 +397,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // Upcoming Appointments Section
               if (_upcomingAppointments.isNotEmpty) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Upcoming Appointments',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                AppointmentsScreen(userId: widget.userId),
-                          ),
-                        ).then((_) => _loadAppointments());
-                      },
-                      child: const Text('View All'),
-                    ),
-                  ],
+                const Text(
+                  'Upcoming Appointments',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                ..._upcomingAppointments.map((appointment) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+                ..._upcomingAppointments.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final appointment = entry.value;
+
+                  // Color progression from darker to lighter
+                  final colors = [
+                    _accentPink,
+                    _accentPink.withValues(alpha: 0.7),
+                    _accentPink.withValues(alpha: 0.4),
+                  ];
+                  final dotColor = colors[index.clamp(0, 2)];
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
                       children: [
+                        // Timeline dot
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          width: 8,
+                          height: 8,
                           decoration: BoxDecoration(
-                            color: _yellowAccent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.event,
-                            color: _yellowAccent,
-                            size: 24,
+                            color: dotColor,
+                            shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
+                        // Appointment text
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                appointment.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${appointment.formattedDate} at ${appointment.formattedTime}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            '${appointment.title} - ${appointment.formattedTime}, ${appointment.formattedDate}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.black.withValues(alpha: 0.7),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        if (appointment.reminderSet)
-                          const Icon(
-                            Icons.notifications_active,
-                            size: 20,
-                            color: Color(0xFFFFB74D),
-                          ),
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 32),
               ],
             ],

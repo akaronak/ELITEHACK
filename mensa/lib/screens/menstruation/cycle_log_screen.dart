@@ -13,10 +13,16 @@ class CycleLogScreen extends StatefulWidget {
 class _CycleLogScreenState extends State<CycleLogScreen> {
   DateTime _selectedDate = DateTime.now();
   String _flowLevel = 'Medium';
-  String _mood = 'Happy';
+  final List<String> _selectedMoods = [];
   final List<String> _selectedSymptoms = [];
 
-  final List<String> _flowLevels = ['Light', 'Medium', 'Heavy', 'Spotting'];
+  final List<String> _flowLevels = [
+    'Light',
+    'Medium',
+    'Heavy',
+    'Spotting',
+    'None',
+  ];
   final List<String> _moods = [
     'Happy',
     'Sad',
@@ -24,6 +30,7 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
     'Irritable',
     'Calm',
     'Energetic',
+    'Tired',
   ];
   final List<String> _symptoms = [
     'Cramps',
@@ -34,6 +41,7 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
     'Breast Tenderness',
     'Mood Swings',
     'Acne',
+    'Nausea',
   ];
 
   @override
@@ -80,13 +88,28 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
             const SizedBox(height: 20),
 
             // Flow Level
-            const Text(
-              'Flow Level',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Flow Level',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () =>
+                      _showAddCustomDialog('Flow Level', _flowLevels),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFB6C1),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: _flowLevels.map((level) {
                 return ChoiceChip(
                   label: Text(level),
@@ -95,28 +118,52 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
                     if (selected) setState(() => _flowLevel = level);
                   },
                   selectedColor: const Color(0xFFFFB6C1),
+                  backgroundColor: const Color(0xFFFFF0F5),
                 );
               }).toList(),
             ),
 
             const SizedBox(height: 20),
 
-            // Mood
-            const Text(
-              'How are you feeling?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            // Mood (Multiple Selection)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'How are you feeling?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () => _showAddCustomDialog('Mood', _moods),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFDDA0DD),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: _moods.map((mood) {
-                return ChoiceChip(
+                final isSelected = _selectedMoods.contains(mood);
+                return FilterChip(
                   label: Text(mood),
-                  selected: _mood == mood,
+                  selected: isSelected,
                   onSelected: (selected) {
-                    if (selected) setState(() => _mood = mood);
+                    setState(() {
+                      if (selected) {
+                        _selectedMoods.add(mood);
+                      } else {
+                        _selectedMoods.remove(mood);
+                      }
+                    });
                   },
                   selectedColor: const Color(0xFFDDA0DD),
+                  backgroundColor: const Color(0xFFFFF0F5),
+                  checkmarkColor: Colors.white,
                 );
               }).toList(),
             ),
@@ -124,13 +171,27 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
             const SizedBox(height: 20),
 
             // Symptoms
-            const Text(
-              'Symptoms',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Symptoms',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextButton.icon(
+                  onPressed: () => _showAddCustomDialog('Symptom', _symptoms),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF98D8C8),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: _symptoms.map((symptom) {
                 final isSelected = _selectedSymptoms.contains(symptom);
                 return FilterChip(
@@ -146,6 +207,8 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
                     });
                   },
                   selectedColor: const Color(0xFF98D8C8),
+                  backgroundColor: const Color(0xFFF0FFF8),
+                  checkmarkColor: Colors.white,
                 );
               }).toList(),
             ),
@@ -167,10 +230,79 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
     );
   }
 
+  void _showAddCustomDialog(String type, List<String> list) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Add Custom $type'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Enter custom $type',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: const Color(0xFFF0FFF8),
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty && !list.contains(value)) {
+                setState(() => list.add(value));
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Added "$value" to $type'),
+                    backgroundColor: const Color(0xFF98D8C8),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              } else if (list.contains(value)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$type already exists'),
+                    backgroundColor: Colors.orange,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF98D8C8),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveLog() {
     // TODO: Save to backend
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cycle log saved successfully!')),
+      SnackBar(
+        content: Text(
+          'Cycle log saved!\nFlow: $_flowLevel\nMoods: ${_selectedMoods.join(", ")}\nSymptoms: ${_selectedSymptoms.join(", ")}',
+        ),
+        backgroundColor: const Color(0xFF98D8C8),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 }

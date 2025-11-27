@@ -19,12 +19,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   List<Appointment> _appointments = [];
   bool _isLoading = true;
 
-  // Modern color palette
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Modern mint/teal color palette
+  static const Color _primaryMint = Color(0xFF98D8C8);
+  static const Color _lightMint = Color(0xFFF0FFF8);
+  static const Color _darkMint = Color(0xFF66A896);
+  static const Color _backgroundColor = Color(0xFFF5FFF8);
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _blueAccent = Color(0xFF64B5F6);
   static const Color _purpleAccent = Color(0xFFD4C4E8);
@@ -94,10 +93,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _accentPink))
+          ? const Center(child: CircularProgressIndicator(color: _primaryMint))
           : RefreshIndicator(
               onRefresh: _loadAppointments,
-              color: _accentPink,
+              color: _primaryMint,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
@@ -113,12 +112,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [_primaryPink, _lightPink],
+                            colors: [_primaryMint, _lightMint],
                           ),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: _primaryPink.withValues(alpha: 0.3),
+                              color: _primaryMint.withValues(alpha: 0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -129,7 +128,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             const Icon(
                               Icons.calendar_month,
                               size: 48,
-                              color: Colors.black87,
+                              color: Colors.white,
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -392,7 +391,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       case 'consultation':
         return _orangeAccent;
       default:
-        return _accentPink;
+        return _primaryMint;
     }
   }
 
@@ -532,10 +531,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _lightPink,
+            color: _lightMint,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 20, color: _darkPink),
+          child: Icon(icon, size: 20, color: _darkMint),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -562,20 +561,415 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   void _showAddAppointmentDialog() {
-    // This will be implemented in the next part
-    // For now, show a simple dialog
-    showDialog(
+    final titleController = TextEditingController();
+    final doctorController = TextEditingController();
+    final locationController = TextEditingController();
+    final notesController = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.now();
+    String selectedType = 'Checkup';
+    bool setReminder = true;
+
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Add Appointment'),
-        content: const Text('Appointment form will be implemented here'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
           ),
-        ],
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Title
+                  const Text(
+                    'Add Appointment',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Title Field
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Appointment Title',
+                      prefixIcon: const Icon(Icons.title),
+                      filled: true,
+                      fillColor: _lightMint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Type Dropdown
+                  DropdownButtonFormField<String>(
+                    value: selectedType,
+                    decoration: InputDecoration(
+                      labelText: 'Type',
+                      prefixIcon: const Icon(Icons.category),
+                      filled: true,
+                      fillColor: _lightMint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items: ['Checkup', 'Ultrasound', 'Test', 'Consultation']
+                        .map(
+                          (type) =>
+                              DropdownMenuItem(value: type, child: Text(type)),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setModalState(() => selectedType = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Date & Time
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: _primaryMint,
+                                      onPrimary: Colors.white,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (date != null) {
+                              setModalState(() => selectedDate = date);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _lightMint,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_today,
+                                      size: 16,
+                                      color: _darkMint,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  DateFormat(
+                                    'MMM dd, yyyy',
+                                  ).format(selectedDate),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: selectedTime,
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: _primaryMint,
+                                      onPrimary: Colors.white,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (time != null) {
+                              setModalState(() => selectedTime = time);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _lightMint,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: _darkMint,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Time',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  selectedTime.format(context),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Doctor Name
+                  TextField(
+                    controller: doctorController,
+                    decoration: InputDecoration(
+                      labelText: 'Doctor Name (Optional)',
+                      prefixIcon: const Icon(Icons.person),
+                      filled: true,
+                      fillColor: _lightMint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Location
+                  TextField(
+                    controller: locationController,
+                    decoration: InputDecoration(
+                      labelText: 'Location (Optional)',
+                      prefixIcon: const Icon(Icons.location_on),
+                      filled: true,
+                      fillColor: _lightMint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Notes
+                  TextField(
+                    controller: notesController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Notes (Optional)',
+                      prefixIcon: const Icon(Icons.notes),
+                      filled: true,
+                      fillColor: _lightMint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Reminder Toggle
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _lightMint,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.notifications, color: _darkMint),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Set Reminder',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Switch(
+                          value: setReminder,
+                          onChanged: (value) {
+                            setModalState(() => setReminder = value);
+                          },
+                          activeColor: _primaryMint,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (titleController.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Please enter a title'),
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final dateTime = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTime.hour,
+                          selectedTime.minute,
+                        );
+
+                        final appointment = Appointment(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          userId: widget.userId,
+                          title: titleController.text.trim(),
+                          dateTime: dateTime,
+                          type: selectedType,
+                          doctorName: doctorController.text.trim().isEmpty
+                              ? null
+                              : doctorController.text.trim(),
+                          location: locationController.text.trim().isEmpty
+                              ? null
+                              : locationController.text.trim(),
+                          notes: notesController.text.trim().isEmpty
+                              ? null
+                              : notesController.text.trim(),
+                          reminderSet: setReminder,
+                          completed: false,
+                          createdAt: DateTime.now(),
+                          updatedAt: DateTime.now(),
+                        );
+
+                        final success = await _apiService.createAppointment(
+                          appointment.toJson(),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                success
+                                    ? 'Appointment added! ✓'
+                                    : 'Failed to add appointment',
+                              ),
+                              backgroundColor: success
+                                  ? _greenAccent
+                                  : Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+
+                          if (success) {
+                            _loadAppointments();
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryMint,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Add Appointment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -22,7 +22,7 @@ class MenstruationHome extends StatefulWidget {
 
 class _MenstruationHomeState extends State<MenstruationHome> {
   String _flowLevel = 'Medium';
-  String _mood = 'Happy';
+  final List<String> _selectedMoods = [];
   final List<String> _selectedSymptoms = [];
 
   // Real data from backend
@@ -452,26 +452,48 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: _primaryPink.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.water_drop,
-                                  color: _darkPink,
-                                  size: 20,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: _primaryPink.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.water_drop,
+                                      color: _darkPink,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Flow Level',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Flow Level',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                              TextButton.icon(
+                                onPressed: () => _showAddCustomDialog(
+                                  'Flow Level',
+                                  _flowLevels,
+                                ),
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text(
+                                  'Add',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _darkPink,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
                                 ),
                               ),
                             ],
@@ -561,15 +583,42 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                               ),
                             ],
                           ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox.shrink(),
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _showAddCustomDialog('Mood', _moods),
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text(
+                                  'Add',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _greenMood,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 16),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: _moods.map((mood) {
-                              final isSelected = _mood == mood;
+                              final isSelected = _selectedMoods.contains(mood);
                               return GestureDetector(
                                 onTap: () {
-                                  setState(() => _mood = mood);
+                                  setState(() {
+                                    if (isSelected) {
+                                      _selectedMoods.remove(mood);
+                                    } else {
+                                      _selectedMoods.add(mood);
+                                    }
+                                  });
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -582,17 +631,31 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                         : _greenMood.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: Text(
-                                    mood,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (isSelected)
+                                        const Padding(
+                                          padding: EdgeInsets.only(right: 6),
+                                          child: Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      Text(
+                                        mood,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
@@ -622,26 +685,46 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: _purpleMood.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.healing,
-                                  color: _purpleMood,
-                                  size: 20,
-                                ),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: _purpleMood.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.healing,
+                                      color: _purpleMood,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Symptoms',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              const Text(
-                                'Symptoms',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _showAddCustomDialog('Symptom', _symptoms),
+                                icon: const Icon(Icons.add, size: 16),
+                                label: const Text(
+                                  'Add',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _purpleMood,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
                                 ),
                               ),
                             ],
@@ -796,13 +879,75 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     );
   }
 
+  void _showAddCustomDialog(String type, List<String> list) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Add Custom $type'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Enter custom $type',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: _lightPink,
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (value.isNotEmpty && !list.contains(value)) {
+                setState(() => list.add(value));
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Added "$value" to $type'),
+                    backgroundColor: _primaryPink,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              } else if (list.contains(value)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$type already exists'),
+                    backgroundColor: Colors.orange,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryPink,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveLog() async {
     final log = {
       'user_id': widget.userId,
       'date': DateTime.now().toIso8601String(),
       'cycle_day': _currentCycleDay,
       'flow_level': _flowLevel,
-      'mood': _mood,
+      'mood': _selectedMoods.join(', '),
       'symptoms': _selectedSymptoms,
       'notes': '',
     };

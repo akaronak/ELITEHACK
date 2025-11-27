@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/user_profile.dart';
 import '../services/api_service.dart';
 
@@ -24,6 +25,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _emergencyContactController =
       TextEditingController();
   final TextEditingController _emergencyPhoneController =
+      TextEditingController();
+  final TextEditingController _emergencyEmailController =
       TextEditingController();
 
   String _bloodType = 'Unknown';
@@ -107,6 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _medications.addAll(profile.medications);
           _emergencyContactController.text = profile.emergencyContact ?? '';
           _emergencyPhoneController.text = profile.emergencyPhone ?? '';
+          _emergencyEmailController.text = profile.emergencyEmail ?? '';
           _trackerType = profile.trackerType;
           _isLoading = false;
         });
@@ -141,6 +145,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         emergencyPhone: _emergencyPhoneController.text.trim().isEmpty
             ? null
             : _emergencyPhoneController.text.trim(),
+        emergencyEmail: _emergencyEmailController.text.trim().isEmpty
+            ? null
+            : _emergencyEmailController.text.trim(),
         trackerType: _trackerType,
         createdAt: _profile?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -364,103 +371,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      _buildInfoCard(
-                        icon: Icons.person_outline,
-                        iconColor: _primaryPurple,
-                        children: [
-                          _buildTextField(
-                            controller: _nameController,
-                            label: 'Full Name',
-                            icon: Icons.badge,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your name';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            controller: _ageController,
-                            label: 'Age',
-                            icon: Icons.cake,
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your age';
-                              }
-                              final age = int.tryParse(value);
-                              if (age == null || age < 1 || age > 120) {
-                                return 'Please enter a valid age';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTextField(
+                              controller: _nameController,
+                              label: 'Full Name',
+                              icon: Icons.badge,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your name';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTextField(
+                              controller: _ageController,
+                              label: 'Age',
+                              icon: Icons.cake,
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your age';
+                                }
+                                final age = int.tryParse(value);
+                                if (age == null || age < 1 || age > 120) {
+                                  return 'Please enter a valid age';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 16),
 
                       // Physical Measurements
-                      _buildInfoCard(
-                        icon: Icons.straighten,
-                        iconColor: _pinkAccent,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildTextField(
-                                  controller: _heightController,
-                                  label: 'Height (cm)',
-                                  icon: Icons.height,
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    final height = double.tryParse(value);
-                                    if (height == null ||
-                                        height < 50 ||
-                                        height > 300) {
-                                      return 'Invalid';
-                                    }
-                                    return null;
-                                  },
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _heightController,
+                                    label: 'Height (cm)',
+                                    icon: Icons.height,
+                                    keyboardType: TextInputType.number,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Required';
+                                      }
+                                      final height = double.tryParse(value);
+                                      if (height == null ||
+                                          height < 50 ||
+                                          height > 300) {
+                                        return 'Invalid';
+                                      }
+                                      return null;
+                                    },
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildTextField(
-                                  controller: _weightController,
-                                  label: 'Weight (kg)',
-                                  icon: Icons.monitor_weight,
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Required';
-                                    }
-                                    final weight = double.tryParse(value);
-                                    if (weight == null ||
-                                        weight < 20 ||
-                                        weight > 300) {
-                                      return 'Invalid';
-                                    }
-                                    return null;
-                                  },
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _weightController,
+                                    label: 'Weight (kg)',
+                                    icon: Icons.monitor_weight,
+                                    keyboardType: TextInputType.number,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Required';
+                                      }
+                                      final weight = double.tryParse(value);
+                                      if (weight == null ||
+                                          weight < 20 ||
+                                          weight > 300) {
+                                        return 'Invalid';
+                                      }
+                                      return null;
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDropdown(
-                            label: 'Blood Type',
-                            value: _bloodType,
-                            items: _bloodTypes,
-                            onChanged: (value) {
-                              setState(() => _bloodType = value!);
-                            },
-                          ),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildDropdown(
+                              label: 'Blood Type',
+                              value: _bloodType,
+                              items: _bloodTypes,
+                              onChanged: (value) {
+                                setState(() => _bloodType = value!);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 32),
@@ -485,13 +518,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             items: _medicalConditions,
                             suggestions: _commonConditions,
                             color: _pinkAccent,
+                            allowCustom: true,
                           ),
                           const SizedBox(height: 16),
                           _buildChipSection(
                             label: 'Allergies',
                             items: _allergies,
                             suggestions: _commonAllergies,
-                            color: const Color(0xFFFF9800),
+                            color: _greenAccent,
+                            allowCustom: true,
                           ),
                           const SizedBox(height: 16),
                           _buildChipSection(
@@ -533,6 +568,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: Icons.phone,
                             keyboardType: TextInputType.phone,
                           ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _emergencyEmailController,
+                            label: 'Email Address',
+                            icon: Icons.email,
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                if (!value.contains('@')) {
+                                  return 'Invalid email';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          // Emergency Button
+                          if (_emergencyEmailController.text.isNotEmpty ||
+                              _emergencyPhoneController.text.isNotEmpty)
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF5252),
+                                    Color(0xFFFF1744),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.red.withValues(alpha: 0.3),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton.icon(
+                                onPressed: _sendEmergencyAlert,
+                                icon: const Icon(Icons.warning_amber_rounded),
+                                label: const Text(
+                                  'Send Emergency Alert',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
 
@@ -928,6 +1023,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _sendEmergencyAlert() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text('Emergency Alert'),
+          ],
+        ),
+        content: Text(
+          'This will send an emergency alert to:\n\n'
+          '${_emergencyContactController.text.isNotEmpty ? _emergencyContactController.text : "Emergency Contact"}\n'
+          '${_emergencyPhoneController.text.isNotEmpty ? "📞 ${_emergencyPhoneController.text}\n" : ""}'
+          '${_emergencyEmailController.text.isNotEmpty ? "📧 ${_emergencyEmailController.text}" : ""}\n\n'
+          'Are you sure you want to proceed?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Send Alert'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      bool success = false;
+
+      // Try to send email if available
+      if (_emergencyEmailController.text.isNotEmpty) {
+        final emailUri = Uri(
+          scheme: 'mailto',
+          path: _emergencyEmailController.text,
+          query:
+              'subject=EMERGENCY ALERT - ${_nameController.text}&body=This is an emergency alert from ${_nameController.text}.%0D%0A%0D%0APlease contact me immediately.%0D%0A%0D%0AUser Details:%0D%0AName: ${_nameController.text}%0D%0AAge: ${_ageController.text}%0D%0ABlood Type: $_bloodType%0D%0A${_medicalConditions.isNotEmpty ? "Medical Conditions: ${_medicalConditions.join(", ")}%0D%0A" : ""}${_allergies.isNotEmpty ? "Allergies: ${_allergies.join(", ")}%0D%0A" : ""}',
+        );
+
+        try {
+          if (await canLaunchUrl(emailUri)) {
+            await launchUrl(emailUri);
+            success = true;
+          }
+        } catch (e) {
+          debugPrint('Error launching email: $e');
+        }
+      }
+
+      // Try to call if phone available
+      if (_emergencyPhoneController.text.isNotEmpty) {
+        final phoneUri = Uri(
+          scheme: 'tel',
+          path: _emergencyPhoneController.text,
+        );
+
+        try {
+          if (await canLaunchUrl(phoneUri)) {
+            await launchUrl(phoneUri);
+            success = true;
+          }
+        } catch (e) {
+          debugPrint('Error launching phone: $e');
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              success
+                  ? 'Emergency alert sent! 🚨'
+                  : 'Unable to send alert. Please check contact details.',
+            ),
+            backgroundColor: success ? Colors.orange : Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -936,6 +1125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _weightController.dispose();
     _emergencyContactController.dispose();
     _emergencyPhoneController.dispose();
+    _emergencyEmailController.dispose();
     super.dispose();
   }
 }

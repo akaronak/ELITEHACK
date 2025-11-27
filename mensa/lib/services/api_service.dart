@@ -513,6 +513,10 @@ class ApiService {
     }
   }
 
+  Future<bool> createAppointment(Map<String, dynamic> appointment) async {
+    return await addAppointment(appointment);
+  }
+
   Future<bool> updateAppointment(Map<String, dynamic> appointment) async {
     try {
       final response = await http.put(

@@ -7,13 +7,32 @@ const fs = require('fs');
 const dataDir = path.join(__dirname, '../../data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+  console.log('Created data directory:', dataDir);
 }
 
-// Create database file in server directory
-const adapter = new FileSync(path.join(dataDir, 'db.json'));
+// Database file path
+const dbPath = path.join(dataDir, 'db.json');
+
+// Create empty db.json if it doesn't exist
+if (!fs.existsSync(dbPath)) {
+  fs.writeFileSync(dbPath, JSON.stringify({
+    userProfiles: [],
+    menstruationLogs: [],
+    cycleData: [],
+    pregnancyProfiles: [],
+    dailyLogs: [],
+    menopauseLogs: [],
+    fcmTokens: [],
+    appointments: [],
+  }, null, 2));
+  console.log('Created database file:', dbPath);
+}
+
+// Create database adapter
+const adapter = new FileSync(dbPath);
 const db = low(adapter);
 
-// Initialize database with default structure
+// Initialize database with default structure (if empty)
 db.defaults({
   userProfiles: [],
   menstruationLogs: [],
@@ -22,6 +41,9 @@ db.defaults({
   dailyLogs: [],
   menopauseLogs: [],
   fcmTokens: [],
+  appointments: [],
 }).write();
+
+console.log('Database initialized successfully');
 
 module.exports = db;
