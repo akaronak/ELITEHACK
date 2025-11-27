@@ -6,8 +6,9 @@ import 'pregnancy_setup_screen.dart';
 
 class PregnancyHome extends StatefulWidget {
   final String userId;
+  final VoidCallback? onTrackerChanged;
 
-  const PregnancyHome({super.key, required this.userId});
+  const PregnancyHome({super.key, required this.userId, this.onTrackerChanged});
 
   @override
   State<PregnancyHome> createState() => _PregnancyHomeState();
@@ -74,6 +75,9 @@ class _PregnancyHomeState extends State<PregnancyHome> {
     }
 
     // Show the main dashboard
-    return DashboardScreen(userId: widget.userId);
+    return DashboardScreen(
+      userId: widget.userId,
+      onTrackerChanged: widget.onTrackerChanged,
+    );
   }
 }

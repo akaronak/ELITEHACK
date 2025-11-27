@@ -8,8 +8,13 @@ import '../profile_screen.dart';
 
 class MenstruationHome extends StatefulWidget {
   final String userId;
+  final VoidCallback? onTrackerChanged;
 
-  const MenstruationHome({super.key, required this.userId});
+  const MenstruationHome({
+    super.key,
+    required this.userId,
+    this.onTrackerChanged,
+  });
 
   @override
   State<MenstruationHome> createState() => _MenstruationHomeState();
@@ -167,7 +172,10 @@ class _MenstruationHomeState extends State<MenstruationHome> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ProfileScreen(userId: widget.userId),
+                builder: (context) => ProfileScreen(
+                  userId: widget.userId,
+                  onTrackerChanged: widget.onTrackerChanged,
+                ),
               ),
             );
           },

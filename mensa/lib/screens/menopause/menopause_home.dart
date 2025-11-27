@@ -7,8 +7,9 @@ import '../profile_screen.dart';
 
 class MenopauseHome extends StatefulWidget {
   final String userId;
+  final VoidCallback? onTrackerChanged;
 
-  const MenopauseHome({super.key, required this.userId});
+  const MenopauseHome({super.key, required this.userId, this.onTrackerChanged});
 
   @override
   State<MenopauseHome> createState() => _MenopauseHomeState();
@@ -156,7 +157,10 @@ class _MenopauseHomeState extends State<MenopauseHome> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ProfileScreen(userId: widget.userId),
+                builder: (context) => ProfileScreen(
+                  userId: widget.userId,
+                  onTrackerChanged: widget.onTrackerChanged,
+                ),
               ),
             );
           },

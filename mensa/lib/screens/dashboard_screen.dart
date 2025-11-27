@@ -15,8 +15,13 @@ import 'pregnancy_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
+  final VoidCallback? onTrackerChanged;
 
-  const DashboardScreen({super.key, required this.userId});
+  const DashboardScreen({
+    super.key,
+    required this.userId,
+    this.onTrackerChanged,
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -133,7 +138,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ProfileScreen(userId: widget.userId),
+                builder: (context) => ProfileScreen(
+                  userId: widget.userId,
+                  onTrackerChanged: widget.onTrackerChanged,
+                ),
               ),
             );
           },

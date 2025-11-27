@@ -4,8 +4,9 @@ import '../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
+  final VoidCallback? onTrackerChanged;
 
-  const ProfileScreen({super.key, required this.userId});
+  const ProfileScreen({super.key, required this.userId, this.onTrackerChanged});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -29,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final List<String> _medicalConditions = [];
   final List<String> _allergies = [];
   final List<String> _medications = [];
+  String _trackerType = 'menstruation';
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -105,6 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _medications.addAll(profile.medications);
           _emergencyContactController.text = profile.emergencyContact ?? '';
           _emergencyPhoneController.text = profile.emergencyPhone ?? '';
+          _trackerType = profile.trackerType;
           _isLoading = false;
         });
       } else {
@@ -138,6 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         emergencyPhone: _emergencyPhoneController.text.trim().isEmpty
             ? null
             : _emergencyPhoneController.text.trim(),
+        trackerType: _trackerType,
         createdAt: _profile?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -291,6 +295,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ],
                         ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Tracker Selection
+                      const Text(
+                        'Active Tracker',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildInfoCard(
+                        icon: Icons.swap_horiz,
+                        iconColor: const Color(0xFF4CAF50),
+                        children: [
+                          const Text(
+                            'Current Tracker',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTrackerSelector(),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.orange,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Changing tracker will switch your home screen. Your data is preserved.',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 32),
@@ -774,6 +832,98 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text('Add'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTrackerSelector() {
+    return Column(
+      children: [
+        _buildTrackerOption(
+          title: 'Pregnancy',
+          icon: Icons.child_care,
+          value: 'pregnancy',
+          color: const Color(0xFFFFB6C1),
+        ),
+        const SizedBox(height: 8),
+        _buildTrackerOption(
+          title: 'Menstruation',
+          icon: Icons.calendar_today,
+          value: 'menstruation',
+          color: const Color(0xFFBA68C8),
+        ),
+        const SizedBox(height: 8),
+        _buildTrackerOption(
+          title: 'Menopause',
+          icon: Icons.favorite,
+          value: 'menopause',
+          color: const Color(0xFFFF8A80),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrackerOption({
+    required String title,
+    required IconData icon,
+    required String value,
+    required Color color,
+  }) {
+    final isSelected = _trackerType == value;
+    return GestureDetector(
+      onTap: () async {
+        final oldTracker = _trackerType;
+        setState(() => _trackerType = value);
+
+        // Save immediately when tracker changes
+        await _saveProfile();
+
+        // Notify parent to refresh
+        if (widget.onTrackerChanged != null && oldTracker != value) {
+          widget.onTrackerChanged!();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.2) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected ? color : Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : Colors.grey[600],
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? color : Colors.black87,
+                ),
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle, color: color, size: 20)
+            else
+              Icon(Icons.circle_outlined, color: Colors.grey[400], size: 20),
+          ],
+        ),
       ),
     );
   }
