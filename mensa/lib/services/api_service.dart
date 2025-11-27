@@ -8,7 +8,7 @@ import '../models/checklist_status.dart';
 class ApiService {
   // Android emulator uses 10.0.2.2 to access host machine's localhost
   // This works consistently without needing to change IP addresses
-  static const String baseUrl = 'http://10.0.2.2:3000/api';
+  static const String baseUrl = 'https://mensa-wieee.onrender.com/api';
 
   // User Pregnancy Profile
   Future<UserPregnancy?> getPregnancyProfile(String userId) async {
