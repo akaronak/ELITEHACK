@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_pregnancy.dart';
+import '../models/appointment.dart';
 import '../services/api_service.dart';
 import '../services/date_calculator_service.dart';
 import 'daily_log_screen.dart';
@@ -8,6 +9,9 @@ import 'checklist_screen.dart';
 import 'ai_chat_screen.dart';
 import 'breathing_game_screen.dart';
 import 'weekly_progress_screen.dart';
+import 'profile_screen.dart';
+import 'appointments_screen.dart';
+import 'pregnancy_history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
@@ -21,12 +25,14 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
   UserPregnancy? _profile;
+  List<Appointment> _upcomingAppointments = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadAppointments();
   }
 
   Future<void> _loadProfile() async {
@@ -35,6 +41,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _profile = profile;
       _isLoading = false;
     });
+  }
+
+  Future<void> _loadAppointments() async {
+    try {
+      final appointmentsData = await _apiService.getAppointments(widget.userId);
+      final appointments = appointmentsData
+          .map((data) => Appointment.fromJson(data))
+          .toList();
+
+      setState(() {
+        _upcomingAppointments = appointments
+            .where((a) => a.isUpcoming && !a.completed)
+            .take(3)
+            .toList();
+        _upcomingAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+      });
+    } catch (e) {
+      debugPrint('Error loading appointments: $e');
+    }
   }
 
   // Soft, calming colors matching menstruation screen
@@ -104,7 +129,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(userId: widget.userId),
+              ),
+            );
+          },
         ),
         title: const Text(
           'Pregnancy Tracker',
@@ -116,6 +148,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PregnancyHistoryScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'View History',
+          ),
           IconButton(
             icon: const Icon(
               Icons.notifications_outlined,
@@ -285,6 +330,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildActionButton(
+                      'Appointments',
+                      Icons.calendar_today,
+                      _yellowAccent,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AppointmentsScreen(userId: widget.userId),
+                        ),
+                      ).then((_) => _loadAppointments()),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionButton(
                       'AI Assistant',
                       Icons.chat_bubble_outline,
                       _accentPink,
@@ -299,7 +359,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
                   Expanded(
                     child: _buildActionButton(
                       'Breathing',
@@ -314,10 +380,106 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  const Expanded(child: SizedBox()),
                 ],
               ),
 
               const SizedBox(height: 32),
+
+              // Upcoming Appointments Section
+              if (_upcomingAppointments.isNotEmpty) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Upcoming Appointments',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AppointmentsScreen(userId: widget.userId),
+                          ),
+                        ).then((_) => _loadAppointments());
+                      },
+                      child: const Text('View All'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ..._upcomingAppointments.map((appointment) {
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _yellowAccent.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.event,
+                            color: _yellowAccent,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                appointment.title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${appointment.formattedDate} at ${appointment.formattedTime}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (appointment.reminderSet)
+                          const Icon(
+                            Icons.notifications_active,
+                            size: 20,
+                            color: Color(0xFFFFB74D),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                const SizedBox(height: 32),
+              ],
             ],
           ),
         ),

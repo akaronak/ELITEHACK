@@ -2,28 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import '../../services/api_service.dart';
 
-class MenstruationAIChatScreen extends StatefulWidget {
+class MenopauseAIChatScreen extends StatefulWidget {
   final String userId;
 
-  const MenstruationAIChatScreen({super.key, required this.userId});
+  const MenopauseAIChatScreen({super.key, required this.userId});
 
   @override
-  State<MenstruationAIChatScreen> createState() =>
-      _MenstruationAIChatScreenState();
+  State<MenopauseAIChatScreen> createState() => _MenopauseAIChatScreenState();
 }
 
-class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
+class _MenopauseAIChatScreenState extends State<MenopauseAIChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
 
-  // Soft, calming colors
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleMood = Color(0xFFD4C4E8);
+  // Soft, calming colors - Purple theme
+  static const Color _lightPurple = Color(0xFFF0E6FA);
+  static const Color _accentPurple = Color(0xFFD4C4E8);
+  static const Color _darkPurple = Color(0xFF9B7FC8);
+  static const Color _backgroundColor = Color(0xFFFAF5FF);
 
   @override
   void initState() {
@@ -36,12 +34,15 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
       _messages.add({
         'role': 'ai',
         'content':
-            'Hello! 👋 I\'m your menstruation health assistant. I can help you with:\n\n'
-            '• Understanding your cycle\n'
-            '• Managing symptoms\n'
-            '• Answering period-related questions\n'
-            '• Providing health tips\n\n'
-            'What would you like to know?',
+            'Hello! 👋 I\'m your menopause health assistant. I specialize in helping women navigate perimenopause and menopause.\n\n'
+            'I can help you with:\n\n'
+            '• Hot flashes and night sweats\n'
+            '• Sleep disturbances\n'
+            '• Mood changes and emotional support\n'
+            '• Hormone therapy information\n'
+            '• Lifestyle and wellness strategies\n'
+            '• Bone and heart health\n\n'
+            'What would you like to know about your menopause journey?',
         'timestamp': DateTime.now(),
       });
     });
@@ -66,26 +67,19 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
     try {
       final apiService = ApiService();
 
-      // Build conversation history (exclude welcome message, take last 10 messages)
-      // This gives the AI context of the last 5 conversation turns
+      // Build conversation history (exclude welcome, last 10 messages)
       final conversationHistory = _messages
-          .where(
-            (msg) => msg['timestamp'] != _messages.first['timestamp'],
-          ) // Exclude welcome
-          .skip(
-            _messages.length > 11 ? _messages.length - 11 : 0,
-          ) // Last 10 messages
+          .where((msg) => msg['timestamp'] != _messages.first['timestamp'])
+          .skip(_messages.length > 11 ? _messages.length - 11 : 0)
           .map((msg) {
             return {
-              'role': msg['role'] == 'user'
-                  ? 'user'
-                  : 'model', // Gemini uses 'model' not 'ai'
+              'role': msg['role'] == 'user' ? 'user' : 'model',
               'content': msg['content'],
             };
           })
           .toList();
 
-      final response = await apiService.sendMenstruationChatMessage(
+      final response = await apiService.sendMenopauseChatMessage(
         userId: widget.userId,
         message: text,
         history: conversationHistory,
@@ -149,10 +143,14 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _purpleMood.withOpacity(0.3),
+                color: _accentPurple.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, color: _purpleMood, size: 20),
+              child: const Icon(
+                Icons.smart_toy,
+                color: _accentPurple,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             const Column(
@@ -167,7 +165,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                   ),
                 ),
                 Text(
-                  'Always here to help',
+                  'Menopause support',
                   style: TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
@@ -203,6 +201,41 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
             ),
           ),
 
+          // Quick Questions (only show if no messages yet or just welcome)
+          if (_messages.length <= 1)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Quick Questions:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildQuickQuestion(
+                        'What are normal menopause symptoms?',
+                      ),
+                      _buildQuickQuestion('How to manage hot flashes?'),
+                      _buildQuickQuestion('When should I see a doctor?'),
+                      _buildQuickQuestion('Natural remedies for menopause'),
+                      _buildQuickQuestion('Is hormone therapy right for me?'),
+                      _buildQuickQuestion('How to improve sleep quality?'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+
           // Messages
           Expanded(
             child: ListView.builder(
@@ -224,7 +257,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                       maxWidth: MediaQuery.of(context).size.width * 0.75,
                     ),
                     decoration: BoxDecoration(
-                      color: isUser ? _darkPink : Colors.white,
+                      color: isUser ? _darkPurple : Colors.white,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(20),
                         topRight: const Radius.circular(20),
@@ -233,7 +266,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -263,8 +296,8 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                                 color: Colors.black87,
                               ),
                               code: TextStyle(
-                                backgroundColor: _lightPink,
-                                color: _darkPink,
+                                backgroundColor: _lightPurple,
+                                color: _darkPurple,
                               ),
                             ),
                           ),
@@ -293,7 +326,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: _accentPink,
+                            color: _accentPurple,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -315,7 +348,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -4),
                 ),
@@ -328,13 +361,13 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: _lightPink,
+                        color: _lightPurple,
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: TextField(
                         controller: _messageController,
                         decoration: const InputDecoration(
-                          hintText: 'Ask about your cycle...',
+                          hintText: 'Ask about menopause...',
                           border: InputBorder.none,
                           hintStyle: TextStyle(
                             color: Colors.black38,
@@ -357,7 +390,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _darkPink,
+                        color: _darkPurple,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -372,6 +405,31 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickQuestion(String question) {
+    return GestureDetector(
+      onTap: () {
+        _messageController.text = question;
+        _sendMessage();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: _lightPurple,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: _accentPurple.withValues(alpha: 0.3)),
+        ),
+        child: Text(
+          question,
+          style: TextStyle(
+            fontSize: 13,
+            color: _darkPurple,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../../services/notification_service.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
 import 'cycle_setup_screen.dart';
+import '../profile_screen.dart';
 
 class MenstruationHome extends StatefulWidget {
   final String userId;
@@ -162,7 +163,14 @@ class _MenstruationHomeState extends State<MenstruationHome> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(userId: widget.userId),
+              ),
+            );
+          },
         ),
         title: const Text(
           'Cycle Tracker',

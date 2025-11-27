@@ -2,27 +2,63 @@ const express = require('express');
 const router = express.Router();
 const db = require('../services/database');
 
-// Add menstruation log
+// Add or update menstruation log (upsert)
 router.post('/:userId/log', (req, res) => {
   try {
     const { userId } = req.params;
-    const log = {
-      log_id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      user_id: userId,
-      ...req.body,
-      created_at: new Date().toISOString(),
-    };
-
-    db.get('menstruationLogs')
-      .push(log)
-      .write();
+    const { date } = req.body;
     
-    // Update cycle data
-    updateCycleData(userId);
+    // Normalize date to start of day
+    const logDate = new Date(date);
+    const normalizedDate = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()).toISOString();
+    
+    // Check if log exists for this date
+    const existingLogIndex = db.get('menstruationLogs')
+      .findIndex(log => log.user_id === userId && log.date === normalizedDate)
+      .value();
 
-    res.status(201).json(log);
+    if (existingLogIndex >= 0) {
+      // Update existing log
+      const existingLog = db.get('menstruationLogs').nth(existingLogIndex).value();
+      
+      const updatedLog = {
+        ...existingLog,
+        ...req.body,
+        date: normalizedDate,
+        updated_at: new Date().toISOString(),
+      };
+      
+      db.get('menstruationLogs')
+        .nth(existingLogIndex)
+        .assign(updatedLog)
+        .write();
+      
+      // Update cycle data
+      updateCycleData(userId);
+      
+      res.json(updatedLog);
+    } else {
+      // Create new log
+      const log = {
+        log_id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        user_id: userId,
+        ...req.body,
+        date: normalizedDate,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      db.get('menstruationLogs')
+        .push(log)
+        .write();
+      
+      // Update cycle data
+      updateCycleData(userId);
+
+      res.status(201).json(log);
+    }
   } catch (error) {
-    console.error('Error adding log:', error);
+    console.error('Error adding/updating log:', error);
     res.status(500).json({ error: error.message });
   }
 });

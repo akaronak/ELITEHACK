@@ -24,6 +24,7 @@ const nutritionRoutes = require('./routes/nutrition.routes');
 const checklistRoutes = require('./routes/checklist.routes');
 const breathingRoutes = require('./routes/breathing.routes');
 const menstruationRoutes = require('./routes/menstruation.routes');
+const menopauseRoutes = require('./routes/menopause.routes');
 const notificationRoutes = require('./routes/notification.routes');
 
 app.use('/api/user', userRoutes);
@@ -34,6 +35,7 @@ app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/checklist', checklistRoutes);
 app.use('/api/breathing', breathingRoutes);
 app.use('/api/menstruation', menstruationRoutes);
+app.use('/api/menopause', menopauseRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Health check

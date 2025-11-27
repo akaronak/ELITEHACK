@@ -43,16 +43,27 @@ class GeminiService {
     
     let fullPrompt = systemPrompt + '\n\n';
     
-    if (context.history) {
-      fullPrompt += 'Previous conversation:\n';
-      context.history.forEach(msg => {
-        fullPrompt += `${msg.role}: ${msg.content}\n`;
-      });
+    // Add user profile context if available
+    if (context.userData) {
+      fullPrompt += `User Profile:\n`;
+      if (context.userData.age) fullPrompt += `- Age: ${context.userData.age}\n`;
+      if (context.userData.bmi) fullPrompt += `- BMI: ${context.userData.bmi}\n`;
+      if (context.userData.medical_conditions && context.userData.medical_conditions.length > 0) {
+        fullPrompt += `- Medical Conditions: ${context.userData.medical_conditions.join(', ')}\n`;
+      }
+      if (context.userData.allergies && context.userData.allergies.length > 0) {
+        fullPrompt += `- Allergies: ${context.userData.allergies.join(', ')}\n`;
+      }
       fullPrompt += '\n';
     }
     
-    if (context.userData) {
-      fullPrompt += `User context: ${JSON.stringify(context.userData)}\n\n`;
+    // Add conversation history for context
+    if (context.history && context.history.length > 0) {
+      fullPrompt += 'Previous conversation:\n';
+      context.history.forEach(msg => {
+        const role = msg.role === 'user' ? 'User' : 'Assistant';
+        fullPrompt += `${role}: ${msg.content}\n\n`;
+      });
     }
     
     fullPrompt += `User: ${userMessage}\n\nAssistant:`;
@@ -110,23 +121,46 @@ Guidelines:
 
 Always include: "⚕️ This guidance doesn't replace medical advice. Always consult your healthcare provider."`,
 
-      menopause: `You are a knowledgeable menopause health assistant.
+      menopause: `You are a compassionate and knowledgeable menopause health assistant specializing in perimenopause and menopause support.
+
+IMPORTANT: You are NOT a menstruation/period tracker. You help women going through menopause (typically ages 45-55+).
 
 Your role:
-- Provide information about menopause symptoms
-- Offer coping strategies and lifestyle advice
-- Explain hormonal changes
-- Suggest wellness practices
-- Identify when medical help is needed
+- Provide accurate information about menopause and perimenopause symptoms
+- Offer practical coping strategies for hot flashes, night sweats, and other symptoms
+- Explain hormonal changes during menopause transition
+- Suggest lifestyle modifications and wellness practices
+- Discuss hormone replacement therapy (HRT) options objectively
+- Address emotional and psychological aspects of menopause
+- Identify when medical consultation is needed
+
+Common topics you help with:
+- Hot flashes and night sweats management
+- Sleep disturbances and insomnia
+- Mood changes, anxiety, and depression
+- Vaginal dryness and sexual health
+- Weight management and metabolism changes
+- Bone health and osteoporosis prevention
+- Heart health considerations
+- Memory and concentration issues
+- Joint pain and muscle aches
 
 Guidelines:
-- Be understanding and supportive
-- Provide practical, actionable advice
-- Explain medical terms clearly
-- Encourage healthy lifestyle choices
-- Recommend professional help when appropriate
+- Be understanding, supportive, and non-judgmental
+- Provide evidence-based, practical advice
+- Explain medical terms in simple language
+- Encourage healthy lifestyle choices (diet, exercise, stress management)
+- Discuss both medical and natural approaches
+- Recommend professional medical consultation when appropriate
+- Consider user's age, medical history, and current symptoms
+- Be sensitive to the emotional challenges of this life transition
 
-Always include: "⚕️ Please consult your healthcare provider for personalized medical advice."`,
+NEVER discuss:
+- Menstrual periods or cycle tracking (that's for younger women)
+- Pregnancy-related topics
+- Fertility concerns
+
+Always end medical advice with: "⚕️ Please consult your healthcare provider for personalized medical advice, especially regarding hormone therapy options."`,
 
       general: `You are a helpful women's health assistant. Provide accurate, supportive information while always recommending professional medical consultation for specific health concerns.`
     };
@@ -137,7 +171,7 @@ Always include: "⚕️ Please consult your healthcare provider for personalized
   async chatMenstruation(userId, message, history = [], userProfile = null) {
     return await this.generateResponse(message, {
       type: 'menstruation',
-      history: history.slice(-5), // Last 5 messages for context
+      history: history.slice(-10), // Last 10 messages (5 conversation turns) for better context
       userData: userProfile,
     });
   }
@@ -145,7 +179,7 @@ Always include: "⚕️ Please consult your healthcare provider for personalized
   async chatPregnancy(userId, message, week, history = []) {
     return await this.generateResponse(message, {
       type: 'pregnancy',
-      history: history.slice(-5),
+      history: history.slice(-10), // Last 10 messages for better context
       userData: { week, trimester: Math.ceil(week / 13) },
     });
   }
@@ -153,7 +187,7 @@ Always include: "⚕️ Please consult your healthcare provider for personalized
   async chatMenopause(userId, message, history = []) {
     return await this.generateResponse(message, {
       type: 'menopause',
-      history: history.slice(-5),
+      history: history.slice(-10), // Last 10 messages for better context
     });
   }
 }

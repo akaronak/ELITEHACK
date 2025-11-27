@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_pregnancy.dart';
 import '../models/daily_log.dart';
@@ -224,6 +225,11 @@ class ApiService {
   // Menstruation Tracker
   Future<bool> addMenstruationLog(Map<String, dynamic> log) async {
     try {
+      // Normalize date to start of day to ensure one log per day
+      final date = DateTime.parse(log['date']);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      log['date'] = normalizedDate.toIso8601String();
+
       final response = await http.post(
         Uri.parse('$baseUrl/menstruation/${log['user_id']}/log'),
         headers: {'Content-Type': 'application/json'},
@@ -232,7 +238,7 @@ class ApiService {
 
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print('Error adding menstruation log: $e');
+      debugPrint('Error adding menstruation log: $e');
       return false;
     }
   }
@@ -290,6 +296,11 @@ class ApiService {
   // Menopause Tracker
   Future<bool> addMenopauseLog(Map<String, dynamic> log) async {
     try {
+      // Normalize date to start of day to ensure one log per day
+      final date = DateTime.parse(log['date']);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+      log['date'] = normalizedDate.toIso8601String();
+
       final response = await http.post(
         Uri.parse('$baseUrl/menopause/${log['user_id']}/log'),
         headers: {'Content-Type': 'application/json'},
@@ -298,7 +309,7 @@ class ApiService {
 
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      print('Error adding menopause log: $e');
+      debugPrint('Error adding menopause log: $e');
       return false;
     }
   }
@@ -467,6 +478,68 @@ class ApiService {
     } catch (e) {
       print('Error sending menopause chat message: $e');
       return 'Sorry, I\'m having trouble connecting. Please check your internet connection and try again.';
+    }
+  }
+
+  // Appointments
+  Future<List<dynamic>> getAppointments(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/appointments/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching appointments: $e');
+      return [];
+    }
+  }
+
+  Future<bool> addAppointment(Map<String, dynamic> appointment) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/appointments/${appointment['user_id']}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(appointment),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print('Error adding appointment: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateAppointment(Map<String, dynamic> appointment) async {
+    try {
+      final response = await http.put(
+        Uri.parse(
+          '$baseUrl/appointments/${appointment['user_id']}/${appointment['id']}',
+        ),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(appointment),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating appointment: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteAppointment(String userId, String appointmentId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/appointments/$userId/$appointmentId'),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting appointment: $e');
+      return false;
     }
   }
 }
