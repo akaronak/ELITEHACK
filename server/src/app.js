@@ -27,6 +27,7 @@ const menstruationRoutes = require('./routes/menstruation.routes');
 const menopauseRoutes = require('./routes/menopause.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const appointmentsRoutes = require('./routes/appointments.routes');
+const emergencyRoutes = require('./routes/emergency.routes');
 
 app.use('/api/user', userRoutes);
 app.use('/api/user', userProfileRoutes);
@@ -39,6 +40,7 @@ app.use('/api/menstruation', menstruationRoutes);
 app.use('/api/menopause', menopauseRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/appointments', appointmentsRoutes);
+app.use('/api/emergency', emergencyRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

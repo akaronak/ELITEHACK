@@ -21,7 +21,7 @@ class _PregnancySetupScreenState extends State<PregnancySetupScreen> {
   DateTime? _selectedDueDate;
   DateTime? _selectedLMP;
   bool _isLoading = false;
-  int _setupStep = 0; // 0: welcome, 1: choose method, 2: enter date
+  int _setupStep = 1; // Start directly at method selection (skip welcome)
 
   // Modern mint/teal color palette
   static const Color _primaryMint = Color(0xFF98D8C8);

@@ -90,4 +90,26 @@ router.post('/chat/menopause', async (req, res) => {
   }
 });
 
+// Education AI Chat (Gemini-powered)
+router.post('/chat/education', async (req, res) => {
+  try {
+    const { userId, message, context } = req.body;
+    
+    if (!userId || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    const geminiService = require('../services/geminiService');
+    const response = await geminiService.chatEducation(userId, message, context || {});
+    
+    res.json({ response });
+  } catch (error) {
+    console.error('Education chat error:', error);
+    res.status(500).json({ 
+      error: error.message,
+      fallback: 'I apologize, but I\'m having trouble connecting to the AI service. Please try again later.'
+    });
+  }
+});
+
 module.exports = router;

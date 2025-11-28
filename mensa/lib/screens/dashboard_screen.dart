@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/user_pregnancy.dart';
 import '../models/appointment.dart';
 import '../services/api_service.dart';
@@ -389,7 +390,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(child: SizedBox()),
+                  Expanded(
+                    child: _buildActionButton(
+                      'Voice AI',
+                      Icons.mic,
+                      const Color(0xFFB8D4C8),
+                      () async {
+                        final url = Uri.parse('https://10.10.136.37:3002/');
+                        try {
+                          await launchUrl(
+                            url,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Could not open Voice AI. Please make sure the server is running.',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ),
                 ],
               ),
 

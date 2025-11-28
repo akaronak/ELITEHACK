@@ -74,6 +74,9 @@ dependencies:
   
   # URL launcher for email and phone
   url_launcher: ^6.2.5
+  
+  # WebView for embedded web content
+  webview_flutter: ^4.4.2
 
 dev_dependencies:
   flutter_test:

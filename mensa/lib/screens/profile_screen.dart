@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../services/api_service.dart';
 import 'auth/login_screen.dart';
+import 'education_chat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -1014,6 +1015,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value: 'menopause',
           color: const Color(0xFFFF8A80),
         ),
+        const SizedBox(height: 16),
+        // Educate Me Button
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    EducationChatScreen(userId: widget.userId),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFD4C4E8).withValues(alpha: 0.3),
+                  const Color(0xFFFFB6C1).withValues(alpha: 0.3),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD4C4E8), width: 2),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4C4E8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.school,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Educate Me',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Learn about periods, menopause & pregnancy',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Color(0xFFD4C4E8),
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -1253,28 +1322,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (confirmed == true) {
-      bool success = false;
-
-      // Try to send email if available
-      if (_emergencyEmailController.text.isNotEmpty) {
-        final emailUri = Uri(
-          scheme: 'mailto',
-          path: _emergencyEmailController.text,
-          query:
-              'subject=EMERGENCY ALERT - ${_nameController.text}&body=This is an emergency alert from ${_nameController.text}.%0D%0A%0D%0APlease contact me immediately.%0D%0A%0D%0AUser Details:%0D%0AName: ${_nameController.text}%0D%0AAge: ${_ageController.text}%0D%0ABlood Type: $_bloodType%0D%0A${_medicalConditions.isNotEmpty ? "Medical Conditions: ${_medicalConditions.join(", ")}%0D%0A" : ""}${_allergies.isNotEmpty ? "Allergies: ${_allergies.join(", ")}%0D%0A" : ""}',
+      // Show loading
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Text('Sending emergency alert...'),
+              ],
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 10),
+          ),
         );
+      }
 
+      // Send email via backend API
+      bool emailSuccess = false;
+      if (_emergencyEmailController.text.isNotEmpty) {
         try {
-          if (await canLaunchUrl(emailUri)) {
-            await launchUrl(emailUri);
-            success = true;
-          }
+          emailSuccess = await _apiService.sendEmergencyAlert(
+            userId: widget.userId,
+            userProfile: {
+              'name': _nameController.text,
+              'age': int.tryParse(_ageController.text) ?? 0,
+              'blood_type': _bloodType,
+              'medical_conditions': _medicalConditions,
+              'allergies': _allergies,
+              'medications': _medications,
+              'tracker_type': _trackerType,
+            },
+            emergencyContact: {
+              'name': _emergencyContactController.text,
+              'email': _emergencyEmailController.text,
+              'phone': _emergencyPhoneController.text,
+            },
+          );
         } catch (e) {
-          debugPrint('Error launching email: $e');
+          debugPrint('Error sending emergency email: $e');
         }
       }
 
       // Try to call if phone available
+      bool phoneSuccess = false;
       if (_emergencyPhoneController.text.isNotEmpty) {
         final phoneUri = Uri(
           scheme: 'tel',
@@ -1284,7 +1383,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         try {
           if (await canLaunchUrl(phoneUri)) {
             await launchUrl(phoneUri);
-            success = true;
+            phoneSuccess = true;
           }
         } catch (e) {
           debugPrint('Error launching phone: $e');
@@ -1292,18 +1391,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              success
-                  ? 'Emergency alert sent! 🚨'
+              emailSuccess || phoneSuccess
+                  ? '🚨 Emergency alert sent successfully!'
                   : 'Unable to send alert. Please check contact details.',
             ),
-            backgroundColor: success ? Colors.orange : Colors.red,
+            backgroundColor: (emailSuccess || phoneSuccess)
+                ? Colors.green
+                : Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
+            duration: const Duration(seconds: 3),
           ),
         );
       }

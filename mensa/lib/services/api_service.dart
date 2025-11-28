@@ -568,4 +568,63 @@ class ApiService {
       return false;
     }
   }
+
+  // Education AI Chat
+  Future<String?> sendEducationChatMessage({
+    required String userId,
+    required String message,
+    Map<String, dynamic>? context,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/ai/chat/education'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'message': message,
+          'context': context ?? {},
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['response'];
+      } else if (response.statusCode == 500) {
+        final data = jsonDecode(response.body);
+        return data['fallback'];
+      }
+      return null;
+    } catch (e) {
+      print('Error sending education chat message: $e');
+      return 'Sorry, I\'m having trouble connecting. Please check your internet connection and try again.';
+    }
+  }
+
+  // Emergency Alert
+  Future<bool> sendEmergencyAlert({
+    required String userId,
+    required Map<String, dynamic> userProfile,
+    required Map<String, dynamic> emergencyContact,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/emergency/alert'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'userProfile': userProfile,
+          'emergencyContact': emergencyContact,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Error sending emergency alert: $e');
+      return false;
+    }
+  }
 }

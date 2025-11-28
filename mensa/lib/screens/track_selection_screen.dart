@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'menstruation/menstruation_onboarding_screen.dart';
 import 'menopause/menopause_home.dart';
 import 'pregnancy/pregnancy_home.dart';
+import 'education_chat_screen.dart';
 
 class TrackSelectionScreen extends StatelessWidget {
   final String userId;
@@ -121,6 +122,8 @@ class TrackSelectionScreen extends StatelessWidget {
                       const Color(0xFFB5C9C4), // Lighter sage
                       'pregnancy',
                     ),
+                    const SizedBox(height: 16),
+                    _buildEducationCard(context),
                   ],
                 ),
               ),
@@ -192,6 +195,91 @@ class TrackSelectionScreen extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text(
                     description,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontWeight: FontWeight.w400,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Arrow
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.85),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEducationCard(BuildContext context) {
+    const color = Color(0xFFFFB6C1); // Light pink for education
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EducationChatScreen(userId: userId),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Icon with white background circle
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.school_rounded, size: 34, color: color),
+            ),
+
+            const SizedBox(width: 18),
+
+            // Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Educate Me',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Learn about periods, menopause & pregnancy',
                     style: TextStyle(
                       fontSize: 13.5,
                       color: Colors.white.withValues(alpha: 0.92),
