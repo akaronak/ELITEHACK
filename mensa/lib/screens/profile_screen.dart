@@ -633,6 +633,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       const SizedBox(height: 32),
 
+                      // App Settings Section
+                      const Text(
+                        'App Settings',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildInfoCard(
+                        icon: Icons.settings,
+                        iconColor: Colors.blue,
+                        children: [
+                          const Text(
+                            'Reset & Restart',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Clear all app data and restart with fresh setup. This will log you out and reset all trackers.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _showLogoutDialog,
+                              icon: const Icon(Icons.logout),
+                              label: const Text('Logout & Restart App'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                side: const BorderSide(
+                                  color: Colors.red,
+                                  width: 2,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
                       // Save Button
                       SizedBox(
                         width: double.infinity,
@@ -1021,6 +1079,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showLogoutDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text('Logout & Restart'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('This will:', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            Text('• Clear all local app data'),
+            Text('• Reset all trackers'),
+            Text('• Return to tracker selection screen'),
+            Text('• Require fresh setup'),
+            SizedBox(height: 16),
+            Text(
+              'Your data on the server will be preserved. You can log back in anytime.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Are you sure you want to continue?',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout & Restart'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Logging out...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Wait a moment for effect
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (mounted) {
+        // Pop loading dialog
+        Navigator.pop(context);
+
+        // Navigate to track selection (replace all routes)
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/track-selection', (route) => false);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Logged out successfully! Welcome back!'),
+            backgroundColor: _greenAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _sendEmergencyAlert() async {

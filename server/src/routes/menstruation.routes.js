@@ -91,12 +91,72 @@ router.get('/:userId/predictions', (req, res) => {
         predicted_next_period: null,
         average_cycle_length: 28,
         cycle_regularity: 0,
+        last_period_start: null,
       });
     }
 
     res.json(data);
   } catch (error) {
     console.error('Error fetching predictions:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Initialize cycle data (for setup)
+router.post('/:userId/initialize', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { last_period_start, average_cycle_length } = req.body;
+    
+    console.log('🔵 Initialize cycle request:', { userId, last_period_start, average_cycle_length });
+    
+    if (!last_period_start || !average_cycle_length) {
+      console.log('❌ Missing required fields');
+      return res.status(400).json({ 
+        error: 'last_period_start and average_cycle_length are required' 
+      });
+    }
+
+    const lastPeriod = new Date(last_period_start);
+    const nextPeriod = new Date(lastPeriod);
+    nextPeriod.setDate(nextPeriod.getDate() + average_cycle_length);
+
+    const cycleData = {
+      user_id: userId,
+      average_cycle_length: average_cycle_length,
+      last_period_start: lastPeriod.toISOString(),
+      predicted_next_period: nextPeriod.toISOString(),
+      cycle_regularity: 0, // Will improve as more data is logged
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log('📊 Cycle data to save:', cycleData);
+
+    // Check if cycle data already exists
+    const existing = db.get('cycleData')
+      .find({ user_id: userId })
+      .value();
+
+    if (existing) {
+      console.log('🔄 Updating existing cycle data');
+      // Update existing
+      db.get('cycleData')
+        .find({ user_id: userId })
+        .assign(cycleData)
+        .write();
+    } else {
+      console.log('✨ Creating new cycle data');
+      // Create new
+      db.get('cycleData')
+        .push(cycleData)
+        .write();
+    }
+
+    console.log('✅ Cycle data initialized successfully');
+    res.status(201).json(cycleData);
+  } catch (error) {
+    console.error('❌ Error initializing cycle data:', error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -6,9 +6,9 @@ import '../models/daily_log.dart';
 import '../models/checklist_status.dart';
 
 class ApiService {
-  // Android emulator uses 10.0.2.2 to access host machine's localhost
+  // Android emulator uses 10.0.2.2 to access host machine's localhost https://mensa-wieee.onrender.com
   // This works consistently without needing to change IP addresses
-  static const String baseUrl = 'https://mensa-wieee.onrender.com/api';
+  static const String baseUrl = 'http://10.0.2.2:3000/api';
 
   // User Pregnancy Profile
   Future<UserPregnancy?> getPregnancyProfile(String userId) async {
@@ -274,6 +274,28 @@ class ApiService {
     } catch (e) {
       print('Error fetching predictions: $e');
       return null;
+    }
+  }
+
+  Future<bool> initializeMenstruationCycle({
+    required String userId,
+    required DateTime lastPeriodStart,
+    required int averageCycleLength,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/menstruation/$userId/initialize'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'last_period_start': lastPeriodStart.toIso8601String(),
+          'average_cycle_length': averageCycleLength,
+        }),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Error initializing cycle: $e');
+      return false;
     }
   }
 

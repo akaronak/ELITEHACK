@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/main_app_screen.dart';
+import 'screens/track_selection_screen.dart';
 import 'services/notification_service.dart';
 
 // Top-level background message handler - MUST be at top level
@@ -44,7 +45,27 @@ class MensaApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainAppScreen(userId: 'demo_user_123'),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(
+              builder: (context) =>
+                  const MainAppScreen(userId: 'demo_user_123'),
+            );
+          case '/track-selection':
+            // Generate new user ID for fresh start
+            final newUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
+            return MaterialPageRoute(
+              builder: (context) => TrackSelectionScreen(userId: newUserId),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) =>
+                  const MainAppScreen(userId: 'demo_user_123'),
+            );
+        }
+      },
     );
   }
 }

@@ -6,11 +6,13 @@ import '../../services/api_service.dart';
 class OnboardingPregnancyScreen extends StatefulWidget {
   final String userId;
   final VoidCallback onComplete;
+  final Map<String, dynamic>? initialData;
 
   const OnboardingPregnancyScreen({
     super.key,
     required this.userId,
     required this.onComplete,
+    this.initialData,
   });
 
   @override

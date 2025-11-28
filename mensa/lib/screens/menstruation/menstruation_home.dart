@@ -4,6 +4,7 @@ import '../../services/notification_service.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
 import 'cycle_setup_screen.dart';
+import 'pcos_log_screen.dart';
 import '../profile_screen.dart';
 
 class MenstruationHome extends StatefulWidget {
@@ -83,21 +84,27 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     try {
       final apiService = ApiService();
 
-      final logs = await apiService.getMenstruationLogs(widget.userId);
-
-      if (logs.isEmpty) {
-        setState(() {
-          _needsSetup = true;
-          _isLoading = false;
-        });
-        return;
-      }
-
+      // First check if cycle data exists
       final predictions = await apiService.getMenstruationPredictions(
         widget.userId,
       );
 
-      if (predictions != null && mounted) {
+      // If no predictions, check if any logs exist
+      if (predictions == null || predictions['last_period_start'] == null) {
+        final logs = await apiService.getMenstruationLogs(widget.userId);
+
+        if (logs.isEmpty) {
+          setState(() {
+            _needsSetup = true;
+            _isLoading = false;
+          });
+          return;
+        }
+      }
+
+      if (predictions != null &&
+          predictions['last_period_start'] != null &&
+          mounted) {
         setState(() {
           _predictions = predictions;
           _currentCycleDay = _calculateCurrentCycleDay(predictions);
@@ -106,22 +113,38 @@ class _MenstruationHomeState extends State<MenstruationHome> {
           _needsSetup = false;
         });
       } else {
-        setState(() => _isLoading = false);
+        // Has logs but no predictions - needs setup
+        setState(() {
+          _needsSetup = true;
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      print('Error loading predictions: $e');
-      setState(() => _isLoading = false);
+      debugPrint('Error loading predictions: $e');
+      setState(() {
+        _isLoading = false;
+        _needsSetup = true;
+      });
     }
   }
 
   int _calculateCurrentCycleDay(Map<String, dynamic> predictions) {
-    if (predictions['last_period_start'] == null) return 1;
+    if (predictions['last_period_start'] == null) {
+      debugPrint('⚠️ No last_period_start in predictions');
+      return 1;
+    }
 
-    final lastPeriod = DateTime.parse(predictions['last_period_start']);
-    final today = DateTime.now();
-    final daysSinceLastPeriod = today.difference(lastPeriod).inDays;
+    try {
+      final lastPeriod = DateTime.parse(predictions['last_period_start']);
+      final today = DateTime.now();
+      final daysSinceLastPeriod = today.difference(lastPeriod).inDays;
 
-    return daysSinceLastPeriod + 1;
+      debugPrint('✅ Calculated cycle day: ${daysSinceLastPeriod + 1}');
+      return daysSinceLastPeriod + 1;
+    } catch (e) {
+      debugPrint('❌ Error calculating cycle day: $e');
+      return 1;
+    }
   }
 
   String _getCyclePhase(int day) {
@@ -419,6 +442,84 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // PCOS Toggle Card
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                PCOSLogScreen(userId: widget.userId),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFFFFB6C1), Color(0xFFFF69B4)],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.pink.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.favorite,
+                                color: Color(0xFFFF69B4),
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'PCOS Tracking',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Specialized tracking for PCOS',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 32),

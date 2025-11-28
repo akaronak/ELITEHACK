@@ -75,6 +75,18 @@ class _CycleSetupScreenState extends State<CycleSetupScreen> {
     try {
       final apiService = ApiService();
 
+      // Step 1: Initialize cycle data with predictions
+      final cycleInitialized = await apiService.initializeMenstruationCycle(
+        userId: widget.userId,
+        lastPeriodStart: _lastPeriodDate!,
+        averageCycleLength: _averageCycleLength,
+      );
+
+      if (!cycleInitialized) {
+        throw Exception('Failed to initialize cycle data');
+      }
+
+      // Step 2: Add the initial log entry
       final log = {
         'user_id': widget.userId,
         'date': _lastPeriodDate!.toIso8601String(),
@@ -85,17 +97,34 @@ class _CycleSetupScreenState extends State<CycleSetupScreen> {
         'notes': 'Initial setup - Last period start date',
       };
 
-      await apiService.addMenstruationLog(log);
+      final logSaved = await apiService.addMenstruationLog(log);
+
+      if (!logSaved) {
+        throw Exception('Failed to save initial log');
+      }
 
       if (mounted) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Cycle tracking setup complete!'),
+            backgroundColor: _darkPink,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+
+        // Complete setup
         widget.onComplete();
       }
     } catch (e) {
-      print('Error saving setup: $e');
+      debugPrint('Error saving setup: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to save. Please try again.'),
+            content: Text('Failed to save: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

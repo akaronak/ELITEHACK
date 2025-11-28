@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/user_profile.dart';
-import 'onboarding/tracker_selection_screen.dart';
+import 'onboarding/initial_onboarding_screen.dart';
 import 'menstruation/menstruation_home.dart';
 import 'menopause/menopause_home.dart';
 import 'pregnancy/pregnancy_home.dart';
@@ -62,10 +62,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
 
     // Show onboarding if no profile
     if (_userProfile == null) {
-      return TrackerSelectionScreen(
-        userId: widget.userId,
-        onComplete: _refreshProfile,
-      );
+      return InitialOnboardingScreen(userId: widget.userId);
     }
 
     // Route to appropriate home screen based on tracker type

@@ -6,11 +6,13 @@ import 'onboarding_menopause_screen.dart';
 class TrackerSelectionScreen extends StatelessWidget {
   final String userId;
   final VoidCallback onComplete;
+  final Map<String, dynamic>? initialData;
 
   const TrackerSelectionScreen({
     super.key,
     required this.userId,
     required this.onComplete,
+    this.initialData,
   });
 
   @override
@@ -102,6 +104,7 @@ class TrackerSelectionScreen extends StatelessWidget {
                         builder: (context) => OnboardingPregnancyScreen(
                           userId: userId,
                           onComplete: onComplete,
+                          initialData: initialData,
                         ),
                       ),
                     );
@@ -123,6 +126,7 @@ class TrackerSelectionScreen extends StatelessWidget {
                         builder: (context) => OnboardingMenstruationScreen(
                           userId: userId,
                           onComplete: onComplete,
+                          initialData: initialData,
                         ),
                       ),
                     );
@@ -144,6 +148,7 @@ class TrackerSelectionScreen extends StatelessWidget {
                         builder: (context) => OnboardingMenopauseScreen(
                           userId: userId,
                           onComplete: onComplete,
+                          initialData: initialData,
                         ),
                       ),
                     );
