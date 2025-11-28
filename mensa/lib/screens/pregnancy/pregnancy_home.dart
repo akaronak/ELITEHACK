@@ -33,12 +33,19 @@ class _PregnancyHomeState extends State<PregnancyHome> {
     });
 
     try {
+      // Check if pregnancy profile exists
       final profile = await _apiService.getPregnancyProfile(widget.userId);
+
+      debugPrint(
+        '🤰 Pregnancy profile loaded: ${profile != null ? "exists" : "null"}',
+      );
+
       setState(() {
         _profile = profile;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('❌ Error loading pregnancy profile: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -65,16 +72,25 @@ class _PregnancyHomeState extends State<PregnancyHome> {
     }
 
     // If no profile exists, show setup screen
-    if (_profile == null || _error != null) {
+    if (_profile == null) {
+      debugPrint('📝 No pregnancy profile found - showing setup');
       return PregnancySetupScreen(
         userId: widget.userId,
         onSetupComplete: () {
+          // This callback is now just a fallback
+          // The setup screen navigates directly to dashboard
           _loadProfile();
         },
       );
     }
 
+    // If error occurred but profile exists, show dashboard anyway
+    if (_error != null) {
+      debugPrint('⚠️ Error occurred but showing dashboard: $_error');
+    }
+
     // Show the main dashboard
+    debugPrint('✅ Showing pregnancy dashboard');
     return DashboardScreen(
       userId: widget.userId,
       onTrackerChanged: widget.onTrackerChanged,

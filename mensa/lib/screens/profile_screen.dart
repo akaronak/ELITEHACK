@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../services/api_service.dart';
+import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -1025,15 +1027,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isSelected = _trackerType == value;
     return GestureDetector(
       onTap: () async {
+        if (isSelected) return; // Don't do anything if already selected
+
         final oldTracker = _trackerType;
         setState(() => _trackerType = value);
 
         // Save immediately when tracker changes
         await _saveProfile();
 
-        // Notify parent to refresh
-        if (widget.onTrackerChanged != null && oldTracker != value) {
+        // Notify parent to refresh and navigate back
+        if (widget.onTrackerChanged != null && oldTracker != value && mounted) {
+          // Show simple loading dialog while switching
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            barrierColor: Colors.black.withValues(alpha: 0.5),
+            builder: (context) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: color, strokeWidth: 4),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Switching to $title...',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+          // Trigger refresh - this will rebuild MainAppScreen with new tracker
           widget.onTrackerChanged!();
+
+          // Wait for the state to update
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          // Pop everything back to the home screen level
+          if (mounted) {
+            // Pop until we're back at the home screen (PregnancyHome/MenstruationHome/MenopauseHome)
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
         }
       },
       child: Container(
@@ -1158,6 +1196,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
 
+      // Clear user session
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
       // Wait a moment for effect
       await Future.delayed(const Duration(seconds: 1));
 
@@ -1165,21 +1207,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Pop loading dialog
         Navigator.pop(context);
 
-        // Navigate to track selection (replace all routes)
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil('/track-selection', (route) => false);
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('✅ Logged out successfully! Welcome back!'),
-            backgroundColor: _greenAccent,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+        // Navigate to login screen (replace all routes)
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (route) => false,
         );
       }
     }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../models/user_profile.dart';
 import '../../services/api_service.dart';
+import '../main_app_screen.dart';
 
 class OnboardingMenstruationScreen extends StatefulWidget {
   final String userId;
@@ -76,6 +76,7 @@ class _OnboardingMenstruationScreenState
         age: initialData['age'] as int? ?? 25,
         height: initialData['height'] as double? ?? 160.0,
         weight: initialData['weight'] as double? ?? 60.0,
+        bloodType: initialData['blood_type']?.toString() ?? 'Unknown',
         trackerType: 'menstruation',
         medicalConditions: List<String>.from(
           initialData['medical_conditions'] ?? [],
@@ -101,7 +102,18 @@ class _OnboardingMenstruationScreenState
       final cycleSuccess = await apiService.addMenstruationLog(cycleLog);
 
       if (profileSuccess && cycleSuccess && mounted) {
-        widget.onComplete();
+        // Wait a moment for backend to process
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Navigate back to main app screen
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => MainAppScreen(userId: widget.userId),
+            ),
+            (route) => false,
+          );
+        }
       } else {
         throw Exception('Failed to save profile');
       }
@@ -142,9 +154,9 @@ class _OnboardingMenstruationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5FF),
+      backgroundColor: const Color(0xFFFAF5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF5FF),
+        backgroundColor: const Color(0xFFFAF5F5),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
@@ -167,7 +179,7 @@ class _OnboardingMenstruationScreenState
                             height: 4,
                             decoration: BoxDecoration(
                               color: index <= _currentPage
-                                  ? const Color(0xFFBA68C8)
+                                  ? const Color(0xFFD4A5A5)
                                   : Colors.grey[300],
                               borderRadius: BorderRadius.circular(2),
                             ),
@@ -209,7 +221,11 @@ class _OnboardingMenstruationScreenState
                                   vertical: 16,
                                 ),
                                 side: const BorderSide(
-                                  color: Color(0xFFBA68C8),
+                                  color: Color(0xFFD4A5A5),
+                                ),
+                                foregroundColor: Color(0xFFA67C7C),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
                               child: const Text('Back'),
@@ -221,9 +237,16 @@ class _OnboardingMenstruationScreenState
                           child: ElevatedButton(
                             onPressed: _nextPage,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFBA68C8),
+                              backgroundColor: const Color(0xFFA67C7C),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 0,
+                              shadowColor: const Color(
+                                0xFFA67C7C,
+                              ).withValues(alpha: 0.3),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
                             child: Text(
                               _currentPage < 1 ? 'Next' : 'Complete Setup',
@@ -257,12 +280,12 @@ class _OnboardingMenstruationScreenState
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFBA68C8), Color(0xFFCE93D8)],
+                colors: [Color(0xFFD4A5A5), Color(0xFFE8C4C4)],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFBA68C8).withValues(alpha: 0.3),
+                  color: const Color(0xFFD4A5A5).withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -270,8 +293,19 @@ class _OnboardingMenstruationScreenState
             ),
             child: Column(
               children: [
-                const Icon(Icons.event_note, size: 48, color: Colors.white),
-                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.event_note,
+                    size: 40,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 const Text(
                   'Cycle Information',
                   style: TextStyle(
@@ -293,63 +327,124 @@ class _OnboardingMenstruationScreenState
             ),
           ),
           const SizedBox(height: 32),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.calendar_today, color: Color(0xFFBA68C8)),
-            title: const Text('Last Period Start Date *'),
-            subtitle: Text(
-              _lastPeriodDate == null
-                  ? 'Tap to select date'
-                  : '${_lastPeriodDate!.day}/${_lastPeriodDate!.month}/${_lastPeriodDate!.year}',
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade200),
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () async {
-              final date = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now().subtract(const Duration(days: 7)),
-                firstDate: DateTime.now().subtract(const Duration(days: 60)),
-                lastDate: DateTime.now(),
-              );
-              if (date != null) {
-                setState(() => _lastPeriodDate = date);
-              }
-            },
+            child: InkWell(
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now().subtract(const Duration(days: 7)),
+                  firstDate: DateTime.now().subtract(const Duration(days: 60)),
+                  lastDate: DateTime.now(),
+                );
+                if (date != null) {
+                  setState(() => _lastPeriodDate = date);
+                }
+              },
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD4A5A5).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_today,
+                      color: Color(0xFFD4A5A5),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Last Period Start Date *',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _lastPeriodDate == null
+                              ? 'Tap to select date'
+                              : '${_lastPeriodDate!.day}/${_lastPeriodDate!.month}/${_lastPeriodDate!.year}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: _lastPeriodDate == null
+                                ? Colors.grey.shade500
+                                : Colors.black.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey.shade400,
+                  ),
+                ],
+              ),
+            ),
           ),
-          const Divider(),
-          const SizedBox(height: 16),
+          const SizedBox(height: 32),
           const Text(
             'Average Cycle Length',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Slider(
             value: _cycleLengthDays.toDouble(),
             min: 21,
             max: 35,
             divisions: 14,
             label: '$_cycleLengthDays days',
-            activeColor: const Color(0xFFBA68C8),
+            activeColor: const Color(0xFFD4A5A5),
+            inactiveColor: const Color(0xFFD4A5A5).withValues(alpha: 0.2),
             onChanged: (value) {
               setState(() => _cycleLengthDays = value.toInt());
             },
           ),
           Text(
             '$_cycleLengthDays days',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           const Text(
             'Typical Period Duration',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Slider(
             value: _periodDurationDays.toDouble(),
             min: 3,
             max: 7,
             divisions: 4,
             label: '$_periodDurationDays days',
-            activeColor: const Color(0xFFBA68C8),
+            activeColor: const Color(0xFFD4A5A5),
+            inactiveColor: const Color(0xFFD4A5A5).withValues(alpha: 0.2),
             onChanged: (value) {
               setState(() => _periodDurationDays = value.toInt());
             },
@@ -377,12 +472,12 @@ class _OnboardingMenstruationScreenState
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFBA68C8), Color(0xFFCE93D8)],
+                colors: [Color(0xFFD4A5A5), Color(0xFFE8C4C4)],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFBA68C8).withValues(alpha: 0.3),
+                  color: const Color(0xFFD4A5A5).withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -390,8 +485,19 @@ class _OnboardingMenstruationScreenState
             ),
             child: Column(
               children: [
-                const Icon(Icons.favorite, size: 48, color: Colors.white),
-                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.favorite,
+                    size: 40,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 const Text(
                   'PCOS Information',
                   style: TextStyle(
@@ -442,27 +548,31 @@ class _OnboardingMenstruationScreenState
             title: 'Not sure / Not diagnosed',
             description: 'I\'m not certain about my PCOS status',
             icon: Icons.help_outline,
-            isSelected:
-                _hasPCOS == null && _hasPCOS != true && _hasPCOS != false,
+            isSelected: _hasPCOS == null,
             onTap: () => setState(() => _hasPCOS = null),
           ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: const Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                const Icon(
+                  Icons.info_outline,
+                  color: Color(0xFF1976D2),
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'PCOS affects 1 in 10 women and can cause irregular periods, weight gain, and other symptoms. We\'ll provide specialized tracking if you have PCOS.',
+                    'PCOS affects 5 in 10 women and can cause irregular periods, weight gain, and other symptoms. We\'ll provide specialized tracking if you have PCOS.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.blue.shade900,
+                      color: Colors.black.withValues(alpha: 0.7),
                       height: 1.4,
                     ),
                   ),
@@ -485,16 +595,25 @@ class _OnboardingMenstruationScreenState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFFBA68C8).withValues(alpha: 0.1)
+              ? const Color(0xFFD4A5A5).withValues(alpha: 0.1)
               : Colors.white,
           border: Border.all(
-            color: isSelected ? const Color(0xFFBA68C8) : Colors.grey.shade300,
-            width: 2,
+            color: isSelected ? const Color(0xFFD4A5A5) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFD4A5A5).withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
         ),
         child: Row(
           children: [
@@ -502,7 +621,7 @@ class _OnboardingMenstruationScreenState
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFFBA68C8)
+                    ? const Color(0xFFD4A5A5)
                     : Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(12),
               ),

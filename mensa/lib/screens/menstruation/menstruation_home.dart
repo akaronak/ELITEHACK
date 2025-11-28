@@ -84,23 +84,22 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     try {
       final apiService = ApiService();
 
-      // First check if cycle data exists
+      // First check if any logs exist
+      final logs = await apiService.getMenstruationLogs(widget.userId);
+
+      if (logs.isEmpty) {
+        // No logs at all - needs setup
+        setState(() {
+          _needsSetup = true;
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Has logs, now check for predictions
       final predictions = await apiService.getMenstruationPredictions(
         widget.userId,
       );
-
-      // If no predictions, check if any logs exist
-      if (predictions == null || predictions['last_period_start'] == null) {
-        final logs = await apiService.getMenstruationLogs(widget.userId);
-
-        if (logs.isEmpty) {
-          setState(() {
-            _needsSetup = true;
-            _isLoading = false;
-          });
-          return;
-        }
-      }
 
       if (predictions != null &&
           predictions['last_period_start'] != null &&
@@ -112,11 +111,56 @@ class _MenstruationHomeState extends State<MenstruationHome> {
           _isLoading = false;
           _needsSetup = false;
         });
-      } else {
-        // Has logs but no predictions - needs setup
+      } else if (logs.isNotEmpty && mounted) {
+        // Has logs but no predictions yet - calculate from most recent log
+        // Sort logs by date to find the most recent period start
+        logs.sort((a, b) {
+          final dateA = DateTime.parse(a['date'] ?? a['created_at']);
+          final dateB = DateTime.parse(b['date'] ?? b['created_at']);
+          return dateB.compareTo(dateA);
+        });
+
+        final mostRecentLog = logs.first;
+        final lastPeriodDate = DateTime.parse(
+          mostRecentLog['date'] ?? mostRecentLog['created_at'],
+        );
+        final today = DateTime.now();
+        final daysSince = today.difference(lastPeriodDate).inDays;
+        final cycleDay = daysSince + 1;
+
+        // Get average cycle length from logs if available
+        int avgCycleLength = 28;
+        if (mostRecentLog['cycle_length'] != null) {
+          avgCycleLength = mostRecentLog['cycle_length'] as int;
+        }
+
+        // Calculate next period
+        final nextPeriod = lastPeriodDate.add(Duration(days: avgCycleLength));
+        final daysUntilNext = nextPeriod.difference(today).inDays;
+
         setState(() {
-          _needsSetup = true;
+          _predictions = {
+            'last_period_start': lastPeriodDate.toIso8601String(),
+            'predicted_next_period': nextPeriod.toIso8601String(),
+            'average_cycle_length': avgCycleLength,
+          };
+          _currentCycleDay = cycleDay;
+          _currentPhase = _getCyclePhase(cycleDay);
           _isLoading = false;
+          _needsSetup = false;
+        });
+
+        debugPrint(
+          '📊 Calculated from logs: Day $cycleDay, Next period in $daysUntilNext days',
+        );
+      } else {
+        // Fallback to default state
+        setState(() {
+          _predictions = null;
+          _currentCycleDay = 1;
+          _currentPhase = 'Menstrual Phase';
+          _isLoading = false;
+          _needsSetup = false;
         });
       }
     } catch (e) {
@@ -446,7 +490,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
 
                     const SizedBox(height: 24),
 
-                    // PCOS Toggle Card
+                    // PCOS Tracking Card
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -463,29 +507,29 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [Color(0xFFFFB6C1), Color(0xFFFF69B4)],
+                            colors: [Color(0xFFE8B4C4), Color(0xFFD4A5A5)],
                           ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.pink.withOpacity(0.3),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
+                              color: const Color(0xFFD4A5A5).withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.9),
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(
                                 Icons.favorite,
-                                color: Color(0xFFFF69B4),
-                                size: 28,
+                                color: Color(0xFFD4A5A5),
+                                size: 26,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -496,26 +540,28 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                   Text(
                                     'PCOS Tracking',
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
                                       color: Colors.white,
+                                      letterSpacing: -0.2,
                                     ),
                                   ),
-                                  SizedBox(height: 4),
+                                  SizedBox(height: 3),
                                   Text(
                                     'Specialized tracking for PCOS',
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 12.5,
                                       color: Colors.white,
+                                      fontWeight: FontWeight.w400,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             const Icon(
-                              Icons.arrow_forward_ios,
+                              Icons.arrow_forward_ios_rounded,
                               color: Colors.white,
-                              size: 20,
+                              size: 18,
                             ),
                           ],
                         ),

@@ -18,6 +18,7 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   bool _isLoading = true;
   UserProfile? _userProfile;
+  Key _homeScreenKey = UniqueKey();
 
   @override
   void initState() {
@@ -27,17 +28,27 @@ class _MainAppScreenState extends State<MainAppScreen> {
 
   Future<void> _checkProfile() async {
     try {
+      debugPrint('🔍 Checking profile for user: ${widget.userId}');
       final apiService = ApiService();
       final profileData = await apiService.getUserProfile(widget.userId);
+
+      debugPrint(
+        '📦 Profile data received: ${profileData != null ? "Found" : "Not found"}',
+      );
 
       setState(() {
         if (profileData != null) {
           _userProfile = UserProfile.fromJson(profileData);
+          debugPrint(
+            '✅ Profile loaded: ${_userProfile!.name}, tracker: ${_userProfile!.trackerType}',
+          );
+        } else {
+          debugPrint('❌ No profile found - showing onboarding');
         }
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error checking profile: $e');
+      debugPrint('❌ Error checking profile: $e');
       setState(() {
         _userProfile = null;
         _isLoading = false;
@@ -46,7 +57,10 @@ class _MainAppScreenState extends State<MainAppScreen> {
   }
 
   void _refreshProfile() {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _homeScreenKey = UniqueKey(); // Force complete rebuild with new key
+    });
     _checkProfile();
   }
 
@@ -66,16 +80,19 @@ class _MainAppScreenState extends State<MainAppScreen> {
     }
 
     // Route to appropriate home screen based on tracker type
+    // Use key to force complete rebuild when tracker changes
     Widget homeScreen;
     switch (_userProfile!.trackerType) {
       case 'pregnancy':
         homeScreen = PregnancyHome(
+          key: _homeScreenKey,
           userId: widget.userId,
           onTrackerChanged: _refreshProfile,
         );
         break;
       case 'menopause':
         homeScreen = MenopauseHome(
+          key: _homeScreenKey,
           userId: widget.userId,
           onTrackerChanged: _refreshProfile,
         );
@@ -83,6 +100,7 @@ class _MainAppScreenState extends State<MainAppScreen> {
       case 'menstruation':
       default:
         homeScreen = MenstruationHome(
+          key: _homeScreenKey,
           userId: widget.userId,
           onTrackerChanged: _refreshProfile,
         );

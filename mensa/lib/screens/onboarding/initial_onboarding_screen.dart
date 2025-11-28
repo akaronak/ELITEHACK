@@ -23,10 +23,23 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   final _medicationsController = TextEditingController();
+  String _bloodType = 'Unknown';
 
   // Medical information
   final List<String> _selectedConditions = [];
   final List<String> _selectedAllergies = [];
+
+  final List<String> _bloodTypes = [
+    'Unknown',
+    'A+',
+    'A-',
+    'B+',
+    'B-',
+    'AB+',
+    'AB-',
+    'O+',
+    'O-',
+  ];
 
   final List<String> _commonConditions = [
     'PCOS',
@@ -99,6 +112,7 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
             'age': int.parse(_ageController.text),
             'height': double.parse(_heightController.text),
             'weight': double.parse(_weightController.text),
+            'blood_type': _bloodType,
             'medical_conditions': _selectedConditions,
             'allergies': _selectedAllergies,
             'medications': _medicationsController.text.trim(),
@@ -111,9 +125,9 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5FF),
+      backgroundColor: const Color(0xFFFAF5F5),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF5FF),
+        backgroundColor: const Color(0xFFFAF5F5),
         elevation: 0,
         leading: _currentPage > 0
             ? IconButton(
@@ -136,7 +150,7 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: index <= _currentPage
-                            ? const Color(0xFFBA68C8)
+                            ? const Color(0xFFE8C4C4)
                             : Colors.grey[300],
                         borderRadius: BorderRadius.circular(2),
                       ),
@@ -183,9 +197,13 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                     child: ElevatedButton(
                       onPressed: _nextPage,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFBA68C8),
+                        backgroundColor: const Color(0xFFA67C7C),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shadowColor: const Color(
+                          0xFFA67C7C,
+                        ).withValues(alpha: 0.3),
                       ),
                       child: Text(
                         _currentPage < 1 ? 'Next' : 'Choose Your Journey',
@@ -219,12 +237,12 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFBA68C8), Color(0xFFCE93D8)],
+                colors: [Color(0xFFE8C4C4), Color(0xFFF5E6E6)],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFBA68C8).withValues(alpha: 0.3),
+                  color: const Color(0xFFE8C4C4).withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -259,10 +277,27 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
             controller: _nameController,
             decoration: InputDecoration(
               labelText: 'Full Name *',
-              prefixIcon: const Icon(Icons.person_outline),
+              prefixIcon: const Icon(
+                Icons.person_outline,
+                color: Color(0xFFA67C7C),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE8C4C4),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
@@ -276,10 +311,27 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
             controller: _ageController,
             decoration: InputDecoration(
               labelText: 'Age *',
-              prefixIcon: const Icon(Icons.cake_outlined),
+              prefixIcon: const Icon(
+                Icons.cake_outlined,
+                color: Color(0xFFA67C7C),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE8C4C4),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
               suffixText: 'years',
             ),
             keyboardType: TextInputType.number,
@@ -303,10 +355,27 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                   controller: _heightController,
                   decoration: InputDecoration(
                     labelText: 'Height *',
-                    prefixIcon: const Icon(Icons.height),
+                    prefixIcon: const Icon(
+                      Icons.height,
+                      color: Color(0xFFA67C7C),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE8C4C4),
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                     suffixText: 'cm',
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
@@ -330,10 +399,27 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                   controller: _weightController,
                   decoration: InputDecoration(
                     labelText: 'Weight *',
-                    prefixIcon: const Icon(Icons.monitor_weight_outlined),
+                    prefixIcon: const Icon(
+                      Icons.monitor_weight_outlined,
+                      color: Color(0xFFA67C7C),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE8C4C4),
+                        width: 2,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
                     suffixText: 'kg',
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
@@ -352,6 +438,39 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _bloodType,
+            decoration: InputDecoration(
+              labelText: 'Blood Type',
+              prefixIcon: const Icon(Icons.bloodtype, color: Color(0xFFA67C7C)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE8C4C4),
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            items: _bloodTypes.map((type) {
+              return DropdownMenuItem(value: type, child: Text(type));
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _bloodType = value);
+              }
+            },
           ),
         ],
       ),
@@ -372,12 +491,12 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
               gradient: const LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFFBA68C8), Color(0xFFCE93D8)],
+                colors: [Color(0xFFE8C4C4), Color(0xFFF5E6E6)],
               ),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFBA68C8).withValues(alpha: 0.3),
+                  color: const Color(0xFFE8C4C4).withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -451,7 +570,7 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFBA68C8)
+                        ? const Color(0xFFE8C4C4)
                         : Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(20),
                   ),

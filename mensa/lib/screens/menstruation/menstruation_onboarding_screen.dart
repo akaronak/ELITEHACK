@@ -412,7 +412,7 @@ class _MenstruationOnboardingScreenState
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'PCOS (Polycystic Ovary Syndrome) affects 1 in 10 women and can cause irregular periods, weight gain, and other symptoms.',
+                  'PCOS (Polycystic Ovary Syndrome) affects 5 in 10 women and can cause irregular periods, weight gain, and other symptoms.',
                   style: TextStyle(fontSize: 13, color: Colors.blue.shade900),
                 ),
               ),

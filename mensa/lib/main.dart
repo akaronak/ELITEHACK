@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/main_app_screen.dart';
-import 'screens/track_selection_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'services/notification_service.dart';
 
 // Top-level background message handler - MUST be at top level
@@ -25,11 +26,21 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
-  runApp(const MensaApp());
+  // Check if user is logged in
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+  final userId = prefs.getString('user_id');
+
+  debugPrint('🔐 Login status: $isLoggedIn, User ID: $userId');
+
+  runApp(MensaApp(isLoggedIn: isLoggedIn, userId: userId));
 }
 
 class MensaApp extends StatelessWidget {
-  const MensaApp({super.key});
+  final bool isLoggedIn;
+  final String? userId;
+
+  const MensaApp({super.key, required this.isLoggedIn, this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -45,27 +56,9 @@ class MensaApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      initialRoute: '/',
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(
-              builder: (context) =>
-                  const MainAppScreen(userId: 'demo_user_123'),
-            );
-          case '/track-selection':
-            // Generate new user ID for fresh start
-            final newUserId = 'user_${DateTime.now().millisecondsSinceEpoch}';
-            return MaterialPageRoute(
-              builder: (context) => TrackSelectionScreen(userId: newUserId),
-            );
-          default:
-            return MaterialPageRoute(
-              builder: (context) =>
-                  const MainAppScreen(userId: 'demo_user_123'),
-            );
-        }
-      },
+      home: isLoggedIn && userId != null
+          ? MainAppScreen(userId: userId!)
+          : const LoginScreen(),
     );
   }
 }

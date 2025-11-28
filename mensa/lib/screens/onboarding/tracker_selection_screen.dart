@@ -18,7 +18,7 @@ class TrackerSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF5FF),
+      backgroundColor: const Color(0xFFFAF5F5),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -35,12 +35,12 @@ class TrackerSelectionScreen extends StatelessWidget {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFFD4C4E8), Color(0xFFF0E6FA)],
+                      colors: [Color(0xFFE8C4C4), Color(0xFFF5E6E6)],
                     ),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFD4C4E8).withValues(alpha: 0.3),
+                        color: const Color(0xFFE8C4C4).withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -48,14 +48,29 @@ class TrackerSelectionScreen extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      const Text('👋', style: TextStyle(fontSize: 48)),
-                      const SizedBox(height: 12),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                        child: ClipOval(
+                          child: Image.asset(
+                            'assets/icon/appicon.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       const Text(
                         'Welcome to Mensa!',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -64,7 +79,7 @@ class TrackerSelectionScreen extends StatelessWidget {
                         'Your personal health companion',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.black.withValues(alpha: 0.6),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -91,34 +106,10 @@ class TrackerSelectionScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildTrackerCard(
                   context: context,
-                  icon: Icons.child_care,
-                  title: 'Pregnancy',
-                  description: 'Track your pregnancy journey week by week',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFB6C1), Color(0xFFFF69B4)],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OnboardingPregnancyScreen(
-                          userId: userId,
-                          onComplete: onComplete,
-                          initialData: initialData,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-                _buildTrackerCard(
-                  context: context,
                   icon: Icons.calendar_today,
                   title: 'Menstruation',
                   description: 'Monitor your cycle and predict periods',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFBA68C8), Color(0xFF9C27B0)],
-                  ),
+                  color: const Color(0xFFD4A5A5),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -138,14 +129,32 @@ class TrackerSelectionScreen extends StatelessWidget {
                   icon: Icons.favorite,
                   title: 'Menopause',
                   description: 'Manage symptoms and track your wellness',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF8A80), Color(0xFFFF5252)],
-                  ),
+                  color: const Color(0xFFC4B5D4),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => OnboardingMenopauseScreen(
+                          userId: userId,
+                          onComplete: onComplete,
+                          initialData: initialData,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTrackerCard(
+                  context: context,
+                  icon: Icons.child_care,
+                  title: 'Pregnancy',
+                  description: 'Track your pregnancy journey week by week',
+                  color: const Color(0xFFB5C9C4),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OnboardingPregnancyScreen(
                           userId: userId,
                           onComplete: onComplete,
                           initialData: initialData,
@@ -168,7 +177,7 @@ class TrackerSelectionScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String description,
-    required Gradient gradient,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -176,34 +185,34 @@ class TrackerSelectionScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: color,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 15,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                gradient: gradient,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
-              child: Icon(icon, size: 28, color: Colors.white),
+              child: Icon(icon, size: 34, color: color),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,25 +221,28 @@ class TrackerSelectionScreen extends StatelessWidget {
                     title,
                     style: const TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black.withValues(alpha: 0.6),
+                      fontSize: 13.5,
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontWeight: FontWeight.w400,
+                      height: 1.3,
                     ),
                   ),
                 ],
               ),
             ),
             Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.black.withValues(alpha: 0.3),
-              size: 18,
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.85),
+              size: 20,
             ),
           ],
         ),

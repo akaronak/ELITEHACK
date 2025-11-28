@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
-import '../profile_screen.dart';
 
 class PCOSLogScreen extends StatefulWidget {
   final String userId;
@@ -135,15 +134,8 @@ class _PCOSLogScreenState extends State<PCOSLogScreen> {
         backgroundColor: _backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfileScreen(userId: widget.userId),
-              ),
-            );
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'PCOS Daily Log',

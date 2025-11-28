@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/user_profile.dart';
 import '../../services/api_service.dart';
+import '../main_app_screen.dart';
 
 class OnboardingMenopauseScreen extends StatefulWidget {
   final String userId;
@@ -104,7 +105,13 @@ class _OnboardingMenopauseScreenState extends State<OnboardingMenopauseScreen> {
       }
 
       if (profileSuccess && mounted) {
-        widget.onComplete();
+        // Navigate back to main app screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => MainAppScreen(userId: widget.userId),
+          ),
+          (route) => false,
+        );
       } else {
         throw Exception('Failed to save profile');
       }
