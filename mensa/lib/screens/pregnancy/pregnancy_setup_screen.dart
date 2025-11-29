@@ -597,10 +597,13 @@ class _PregnancySetupScreenState extends State<PregnancySetupScreen> {
             ),
           );
 
-          // Navigate directly to dashboard instead of callback
+          // Navigate directly to dashboard with callback
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => DashboardScreen(userId: widget.userId),
+              builder: (context) => DashboardScreen(
+                userId: widget.userId,
+                onTrackerChanged: widget.onTrackerChanged,
+              ),
             ),
           );
         } else {
