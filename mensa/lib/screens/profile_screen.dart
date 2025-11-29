@@ -1135,10 +1135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
 
           // Trigger refresh - this will rebuild MainAppScreen with new tracker
-          await widget.onTrackerChanged!();
+          widget.onTrackerChanged!();
 
-          // Wait a bit more for the rebuild to complete
-          await Future.delayed(const Duration(milliseconds: 300));
+          // Wait for the rebuild to complete
+          await Future.delayed(const Duration(milliseconds: 600));
 
           // Pop the loading dialog
           if (mounted) {
