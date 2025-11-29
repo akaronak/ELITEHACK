@@ -140,14 +140,19 @@ class _PregnancyReportScreenState extends State<PregnancyReportScreen> {
                   _buildPDFInfoRow('User ID', widget.userId),
                   _buildPDFInfoRow(
                     'Current Week',
-                    '${_profile!['currentWeek']}',
+                    _profile!['currentWeek']?.toString() ?? 'Not provided',
                   ),
-                  _buildPDFInfoRow('Trimester', '${_profile!['trimester']}'),
+                  _buildPDFInfoRow(
+                    'Trimester',
+                    _profile!['trimester']?.toString() ?? 'Not provided',
+                  ),
                   _buildPDFInfoRow(
                     'Due Date',
-                    DateFormat(
-                      'MMMM dd, yyyy',
-                    ).format(DateTime.parse(_profile!['dueDate'])),
+                    _profile!['dueDate'] != null
+                        ? DateFormat(
+                            'MMMM dd, yyyy',
+                          ).format(DateTime.parse(_profile!['dueDate']))
+                        : 'Not provided',
                   ),
                   if (userProfile?['medical_conditions'] != null)
                     _buildPDFInfoRow(
@@ -218,9 +223,11 @@ class _PregnancyReportScreenState extends State<PregnancyReportScreen> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        DateFormat(
-                          'MMMM dd, yyyy',
-                        ).format(DateTime.parse(log['date'])),
+                        log['date'] != null
+                            ? DateFormat(
+                                'MMMM dd, yyyy',
+                              ).format(DateTime.parse(log['date']))
+                            : 'Date not available',
                         style: pw.TextStyle(
                           fontSize: 11,
                           fontWeight: pw.FontWeight.bold,
@@ -534,7 +541,7 @@ class _PregnancyReportScreenState extends State<PregnancyReportScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Week ${_profile!['currentWeek']} • Trimester ${_profile!['trimester']}',
+                          'Week ${_profile!['currentWeek']?.toString() ?? 'N/A'} • Trimester ${_profile!['trimester']?.toString() ?? 'N/A'}',
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white70,
