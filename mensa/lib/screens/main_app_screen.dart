@@ -58,12 +58,16 @@ class _MainAppScreenState extends State<MainAppScreen> {
 
   Future<void> _refreshProfile() async {
     debugPrint('🔄 Refreshing profile and rebuilding home screen...');
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _homeScreenKey = UniqueKey(); // Force complete rebuild with new key
     });
     // Add small delay to ensure profile save completed
     await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+
     await _checkProfile();
   }
 

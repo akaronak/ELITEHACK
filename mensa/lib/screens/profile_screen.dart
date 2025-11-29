@@ -1145,11 +1145,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.of(context).pop();
           }
 
-          // Pop all screens until we're back at the home level
-          // This handles cases where we're deep in navigation (e.g., setup screen -> profile)
+          // Pop all screens back to home
+          // Count how many times to pop (profile + any intermediate screens)
           if (mounted) {
-            // Pop until we reach the first route (MainAppScreen's child)
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Get the current navigator
+            final navigator = Navigator.of(context);
+
+            // Pop until we can't pop anymore (back to home screen)
+            // But keep at least one route (the home screen from MainAppScreen)
+            while (navigator.canPop() && mounted) {
+              navigator.pop();
+            }
           }
         }
       },
