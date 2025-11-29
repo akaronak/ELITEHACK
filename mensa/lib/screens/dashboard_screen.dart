@@ -13,6 +13,7 @@ import 'weekly_progress_screen.dart';
 import 'profile_screen.dart';
 import 'appointments_screen.dart';
 import 'pregnancy_history_screen.dart';
+import 'pregnancy_report_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
@@ -169,6 +170,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
             tooltip: 'View History',
+          ),
+          IconButton(
+            icon: const Icon(Icons.assessment_outlined, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      PregnancyReportScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Generate Health Report',
           ),
           IconButton(
             icon: const Icon(

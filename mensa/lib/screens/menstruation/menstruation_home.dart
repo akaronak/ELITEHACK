@@ -5,6 +5,7 @@ import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
 import 'cycle_setup_screen.dart';
 import 'pcos_log_screen.dart';
+import 'menstruation_report_screen.dart';
 import '../profile_screen.dart';
 
 class MenstruationHome extends StatefulWidget {
@@ -257,6 +258,19 @@ class _MenstruationHomeState extends State<MenstruationHome> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assessment_outlined, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      MenstruationReportScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Generate Health Report',
+          ),
           IconButton(
             icon: const Icon(
               Icons.notifications_outlined,
