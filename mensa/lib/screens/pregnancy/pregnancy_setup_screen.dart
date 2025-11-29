@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../dashboard_screen.dart';
+import '../profile_screen.dart';
 
 class PregnancySetupScreen extends StatefulWidget {
   final String userId;
   final VoidCallback onSetupComplete;
+  final VoidCallback? onTrackerChanged;
 
   const PregnancySetupScreen({
     super.key,
     required this.userId,
     required this.onSetupComplete,
+    this.onTrackerChanged,
   });
 
   @override
@@ -33,6 +36,34 @@ class _PregnancySetupScreenState extends State<PregnancySetupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _backgroundColor,
+      appBar: AppBar(
+        backgroundColor: _backgroundColor,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.black87),
+          onPressed: () {
+            // Open profile screen to allow tracker change
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(
+                  userId: widget.userId,
+                  onTrackerChanged: widget.onTrackerChanged,
+                ),
+              ),
+            );
+          },
+        ),
+        title: const Text(
+          'Pregnancy Setup',
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(child: _buildStepContent()),
     );
   }

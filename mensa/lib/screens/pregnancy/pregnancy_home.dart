@@ -81,6 +81,7 @@ class _PregnancyHomeState extends State<PregnancyHome> {
           // The setup screen navigates directly to dashboard
           _loadProfile();
         },
+        onTrackerChanged: widget.onTrackerChanged,
       );
     }
 
