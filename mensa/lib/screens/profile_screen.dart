@@ -1130,16 +1130,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
 
+          // Wait a bit for the save to complete
+          await Future.delayed(const Duration(milliseconds: 300));
+
+          // Pop the loading dialog first
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+
           // Trigger refresh - this will rebuild MainAppScreen with new tracker
           widget.onTrackerChanged!();
 
           // Wait for the state to update
           await Future.delayed(const Duration(milliseconds: 500));
 
-          // Pop everything back to the home screen level
+          // Pop back to the home screen
           if (mounted) {
-            // Pop until we're back at the home screen (PregnancyHome/MenstruationHome/MenopauseHome)
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Pop the profile screen to go back to home
+            Navigator.of(context).pop();
           }
         }
       },

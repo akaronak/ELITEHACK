@@ -57,11 +57,15 @@ class _MainAppScreenState extends State<MainAppScreen> {
   }
 
   void _refreshProfile() {
+    debugPrint('🔄 Refreshing profile and rebuilding home screen...');
     setState(() {
       _isLoading = true;
       _homeScreenKey = UniqueKey(); // Force complete rebuild with new key
     });
-    _checkProfile();
+    // Add small delay to ensure profile save completed
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _checkProfile();
+    });
   }
 
   @override
