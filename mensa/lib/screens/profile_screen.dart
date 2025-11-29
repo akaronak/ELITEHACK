@@ -1145,9 +1145,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.of(context).pop();
           }
 
-          // Pop the profile screen to go back to the new home screen
+          // Pop all screens until we're back at the home level
+          // This handles cases where we're deep in navigation (e.g., setup screen -> profile)
           if (mounted) {
-            Navigator.of(context).pop();
+            // Pop until we reach the first route (MainAppScreen's child)
+            Navigator.of(context).popUntil((route) => route.isFirst);
           }
         }
       },
