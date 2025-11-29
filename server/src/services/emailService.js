@@ -15,11 +15,11 @@ class EmailService {
       const nodemailerModule = await import('nodemailer');
       nodemailer = nodemailerModule.default || nodemailerModule;
 
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.EMAIL_USER || 'jatingarg850@gmail.com',
-          pass: process.env.EMAIL_APP_PASSWORD || 'tmfp chst oyzn mtml',
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_APP_PASSWORD,
         },
       });
 
@@ -44,7 +44,7 @@ class EmailService {
 
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER || 'jatingarg850@gmail.com',
+        from: process.env.EMAIL_USER,
         to: emergencyContact.email,
         subject: `🚨 EMERGENCY ALERT - ${userProfile.name}`,
         html: `
