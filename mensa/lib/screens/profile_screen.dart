@@ -1111,42 +1111,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context: context,
             barrierDismissible: false,
             barrierColor: Colors.black.withValues(alpha: 0.5),
-            builder: (context) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: color, strokeWidth: 4),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Switching to $title...',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.white,
-                      decoration: TextDecoration.none,
+            builder: (context) => WillPopScope(
+              onWillPop: () async => false,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: color, strokeWidth: 4),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Switching to $title...',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        decoration: TextDecoration.none,
+                        fontFamily: 'Roboto',
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
 
-          // Wait a bit for the save to complete
+          // Trigger refresh - this will rebuild MainAppScreen with new tracker
+          await widget.onTrackerChanged!();
+
+          // Wait a bit more for the rebuild to complete
           await Future.delayed(const Duration(milliseconds: 300));
 
-          // Pop the loading dialog first
+          // Pop the loading dialog
           if (mounted) {
             Navigator.of(context).pop();
           }
 
-          // Trigger refresh - this will rebuild MainAppScreen with new tracker
-          widget.onTrackerChanged!();
-
-          // Wait for the state to update
-          await Future.delayed(const Duration(milliseconds: 500));
-
-          // Pop back to the home screen
+          // Pop the profile screen to go back to the new home screen
           if (mounted) {
-            // Pop the profile screen to go back to home
             Navigator.of(context).pop();
           }
         }
