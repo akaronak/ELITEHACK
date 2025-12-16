@@ -453,7 +453,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Icons.mic,
                       const Color(0xFFB8D4C8),
                       () async {
-                        final url = Uri.parse('https://10.10.136.37:3002/');
+                        final url = Uri.parse('https://10.0.2.2:3002/');
                         try {
                           await launchUrl(
                             url,

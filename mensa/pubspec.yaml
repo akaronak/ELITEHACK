@@ -77,6 +77,11 @@ dependencies:
   
   # WebView for embedded web content
   webview_flutter: ^4.4.2
+  
+  # Image picker for medical report uploads
+  image_picker: ^1.0.4
+  
+
 
 dev_dependencies:
   flutter_test:

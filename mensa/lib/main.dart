@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import 'screens/main_app_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'services/notification_service.dart';
+import 'providers/theme_provider.dart';
+import 'providers/localization_provider.dart';
 
 // Top-level background message handler - MUST be at top level
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print('Handling background message: ${message.messageId}');
+  debugPrint('Handling background message: ${message.messageId}');
 }
 
 void main() async {
@@ -30,35 +33,55 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
   final userId = prefs.getString('user_id');
+  final savedLanguage = prefs.getString('app_language') ?? 'en';
 
   debugPrint('🔐 Login status: $isLoggedIn, User ID: $userId');
 
-  runApp(MensaApp(isLoggedIn: isLoggedIn, userId: userId));
+  runApp(
+    MensaApp(
+      isLoggedIn: isLoggedIn,
+      userId: userId,
+      initialLanguage: savedLanguage,
+    ),
+  );
 }
 
 class MensaApp extends StatelessWidget {
   final bool isLoggedIn;
   final String? userId;
+  final String initialLanguage;
 
-  const MensaApp({super.key, required this.isLoggedIn, this.userId});
+  const MensaApp({
+    super.key,
+    required this.isLoggedIn,
+    this.userId,
+    required this.initialLanguage,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Mensa - Women\'s Health',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.pink,
-        scaffoldBackgroundColor: const Color(0xFFFFF5F7),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFFB6C1),
-          primary: const Color(0xFFFFB6C1),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(
+          create: (_) => LocalizationProvider(initialLanguage),
         ),
-        useMaterial3: true,
+      ],
+      child: Consumer2<ThemeProvider, LocalizationProvider>(
+        builder: (context, themeProvider, localizationProvider, _) {
+          return MaterialApp(
+            title: 'Mensa - Women\'s Health',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeProvider.getLightTheme(),
+            darkTheme: ThemeProvider.getDarkTheme(),
+            themeMode: themeProvider.themeMode,
+            locale: Locale(localizationProvider.language),
+            home: isLoggedIn && userId != null
+                ? MainAppScreen(userId: userId!)
+                : const LoginScreen(),
+          );
+        },
       ),
-      home: isLoggedIn && userId != null
-          ? MainAppScreen(userId: userId!)
-          : const LoginScreen(),
     );
   }
 }

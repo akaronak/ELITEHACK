@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_pregnancy.dart';
@@ -8,7 +9,7 @@ import '../models/checklist_status.dart';
 class ApiService {
   // Android emulator uses 10.0.2.2 to access host machine's localhost https://mensa-wieee.onrender.com
   // This works consistently without needing to change IP addresses
-  static const String baseUrl = 'http://10.10.136.37:3000/api';
+  static const String baseUrl = 'http://10.0.2.2:3000/api';
 
   // User Pregnancy Profile
   Future<UserPregnancy?> getPregnancyProfile(String userId) async {
@@ -626,5 +627,43 @@ class ApiService {
       print('Error sending emergency alert: $e');
       return false;
     }
+  }
+
+  // Medical Report OCR Analysis
+  Future<Map<String, dynamic>?> analyzeMedicalReport({
+    required String userId,
+    required String base64Image,
+    required String fileName,
+    String fileType = 'image',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/ocr/analyze-report'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'image': base64Image,
+          'fileName': fileName,
+          'fileType': fileType,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error analyzing medical report: $e');
+      return null;
+    }
+  }
+
+  // Note: PDF upload is currently handled through image picker
+  // For full PDF support, consider using native file picker or document_picker package
+  Future<Map<String, String>?> pickPDFFile() async {
+    debugPrint(
+      'PDF picker: Please use image picker for now or upload via camera/gallery',
+    );
+    return null;
   }
 }

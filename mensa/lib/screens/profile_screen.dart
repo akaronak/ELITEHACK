@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'dart:io';
 import '../models/user_profile.dart';
 import '../services/api_service.dart';
+import '../providers/theme_provider.dart';
+import '../providers/localization_provider.dart';
 import 'auth/login_screen.dart';
 import 'education_chat_screen.dart';
 
@@ -40,7 +46,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isAnalyzing = false;
   UserProfile? _profile;
+  Map<String, dynamic>? _ocrResult;
 
   // Modern color palette
   static const Color _primaryPurple = Color(0xFFD4C4E8);
@@ -212,16 +220,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'My Profile',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Consumer<LocalizationProvider>(
+          builder: (context, localization, _) {
+            return Text(
+              localization.getString('my_profile'),
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+          },
         ),
         centerTitle: true,
         actions: [
+          if (!_isLoading)
+            IconButton(
+              icon: const Icon(Icons.settings, color: Colors.black87),
+              onPressed: _showSettingsDialog,
+              tooltip: 'Settings',
+            ),
           if (!_isLoading)
             IconButton(
               icon: _isSaving
@@ -539,6 +557,218 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: _primaryPurple,
                             allowCustom: true,
                           ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Medical Report OCR Analysis
+                      const Text(
+                        'Medical Report Analysis',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildInfoCard(
+                        icon: Icons.document_scanner,
+                        iconColor: Colors.blue,
+                        children: [
+                          const Text(
+                            'Upload Medical Report',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Upload an image of your medical report and our AI will analyze it and provide an easy-to-understand summary.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _isAnalyzing
+                                  ? null
+                                  : _uploadMedicalReport,
+                              icon: _isAnalyzing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.image),
+                              label: Text(
+                                _isAnalyzing
+                                    ? 'Analyzing...'
+                                    : 'Upload Report Image',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_ocrResult != null) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.blue.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Analysis Result',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 18),
+                                        onPressed: () {
+                                          setState(() => _ocrResult = null);
+                                        },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    _ocrResult!['summary'] ??
+                                        'No summary available',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                      height: 1.6,
+                                    ),
+                                  ),
+                                  if (_ocrResult!['keyFindings'] != null &&
+                                      (_ocrResult!['keyFindings'] as List)
+                                          .isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Key Findings:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...((_ocrResult!['keyFindings'] as List)
+                                        .cast<String>()
+                                        .map(
+                                          (finding) => Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 6,
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  '• ',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.blue,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    finding,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )),
+                                  ],
+                                  if (_ocrResult!['recommendations'] != null &&
+                                      (_ocrResult!['recommendations'] as List)
+                                          .isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Recommendations:',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...((_ocrResult!['recommendations'] as List)
+                                        .cast<String>()
+                                        .map(
+                                          (rec) => Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 6,
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  '✓ ',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.green,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Text(
+                                                    rec,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
 
@@ -1427,6 +1657,268 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     }
+  }
+
+  Future<void> _uploadMedicalReport() async {
+    // Show options dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Upload Medical Report'),
+        content: const Text(
+          'Choose how you want to upload your medical report:',
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickAndAnalyzeReport(ImageSource.camera);
+            },
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('Take Photo'),
+          ),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickAndAnalyzeReport(ImageSource.gallery);
+            },
+            icon: const Icon(Icons.image),
+            label: const Text('Choose Image'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickAndAnalyzeReport(ImageSource source) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+
+      if (image == null) return;
+
+      if (!mounted) return;
+
+      setState(() => _isAnalyzing = true);
+
+      // Read image file and convert to base64
+      final bytes = await File(image.path).readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      // Send to backend for OCR analysis
+      final result = await _apiService.analyzeMedicalReport(
+        userId: widget.userId,
+        base64Image: base64Image,
+        fileName: image.name,
+        fileType: 'image',
+      );
+
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+
+        if (result != null) {
+          setState(() => _ocrResult = result);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('✅ Medical report analyzed successfully!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                '❌ Failed to analyze report. Please try again.',
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error uploading medical report: $e');
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error uploading report. Please try again.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showSettingsDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Consumer<LocalizationProvider>(
+          builder: (context, localization, _) {
+            return Text(localization.getString('app_settings'));
+          },
+        ),
+        content: Consumer2<ThemeProvider, LocalizationProvider>(
+          builder: (context, theme, localization, _) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Theme Section
+                  Text(
+                    localization.getString('theme'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        RadioListTile<ThemeMode>(
+                          title: Text(localization.getString('light_mode')),
+                          value: ThemeMode.light,
+                          groupValue: theme.themeMode,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setTheme(value);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    localization.getString('theme_changed'),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        RadioListTile<ThemeMode>(
+                          title: Text(localization.getString('dark_mode')),
+                          value: ThemeMode.dark,
+                          groupValue: theme.themeMode,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setTheme(value);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    localization.getString('theme_changed'),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Language Section
+                  Text(
+                    localization.getString('language'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        RadioListTile<String>(
+                          title: Text(localization.getString('english')),
+                          value: 'en',
+                          groupValue: localization.language,
+                          onChanged: (value) {
+                            if (value != null) {
+                              localizationProvider.setLanguage(value);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    localization.getString('language_changed'),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: Text(localization.getString('hindi')),
+                          value: 'hi',
+                          groupValue: localization.language,
+                          onChanged: (value) {
+                            if (value != null) {
+                              localizationProvider.setLanguage(value);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    localization.getString('language_changed'),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Consumer<LocalizationProvider>(
+              builder: (context, localization, _) {
+                return Text(localization.getString('ok'));
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

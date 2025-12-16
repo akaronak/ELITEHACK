@@ -38,6 +38,84 @@ class GeminiService {
     }
   }
 
+  async analyzeImage(base64Image, prompt) {
+    if (!this.ai) {
+      throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in .env file');
+    }
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: prompt,
+              },
+              {
+                inlineData: {
+                  mimeType: 'image/jpeg',
+                  data: base64Image,
+                },
+              },
+            ],
+          },
+        ],
+        config: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      });
+      
+      return response.text;
+    } catch (error) {
+      console.error('Gemini Image Analysis Error:', error);
+      throw new Error('Failed to analyze image: ' + error.message);
+    }
+  }
+
+  async analyzeDocument(base64Data, prompt, mimeType = 'image/jpeg') {
+    if (!this.ai) {
+      throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in .env file');
+    }
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: prompt,
+              },
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: base64Data,
+                },
+              },
+            ],
+          },
+        ],
+        config: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      });
+      
+      return response.text;
+    } catch (error) {
+      console.error('Gemini Document Analysis Error:', error);
+      throw new Error('Failed to analyze document: ' + error.message);
+    }
+  }
+
   _buildPrompt(userMessage, context) {
     const systemPrompt = this._getSystemPrompt(context.type || 'general');
     
