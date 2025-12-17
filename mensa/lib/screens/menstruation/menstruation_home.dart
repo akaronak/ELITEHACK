@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../services/notification_service.dart';
+import '../../providers/localization_provider.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
 import 'cycle_setup_screen.dart';
@@ -248,13 +250,17 @@ class _MenstruationHomeState extends State<MenstruationHome> {
             );
           },
         ),
-        title: const Text(
-          'Cycle Tracker',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Consumer<LocalizationProvider>(
+          builder: (context, localization, _) {
+            return Text(
+              localization.getString('cycle'),
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+          },
         ),
         centerTitle: true,
         actions: [
@@ -291,24 +297,28 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.picture_as_pdf,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'Report',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  child: Consumer<LocalizationProvider>(
+                    builder: (context, localization, _) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.picture_as_pdf,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            localization.getString('report'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -463,86 +473,96 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Day $_currentCycleDay',
-                            style: const TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _currentPhase,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.black.withOpacity(0.6),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      child: Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Column(
                             children: [
-                              _buildStatChip(
-                                'Next Period',
-                                _getDaysUntilNextPeriod(),
-                                Icons.calendar_today,
+                              Text(
+                                'Day $_currentCycleDay',
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
-                              _buildStatChip(
-                                'Avg Cycle',
-                                '${_predictions?['average_cycle_length'] ?? 28} days',
-                                Icons.repeat,
+                              const SizedBox(height: 8),
+                              Text(
+                                _currentPhase,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black.withOpacity(0.6),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildStatChip(
+                                    localization.getString('next_period'),
+                                    _getDaysUntilNextPeriod(),
+                                    Icons.calendar_today,
+                                  ),
+                                  _buildStatChip(
+                                    localization.getString('cycle_length'),
+                                    '${_predictions?['average_cycle_length'] ?? 28} days',
+                                    Icons.repeat,
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          );
+                        },
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
                     // Quick Actions
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            'Calendar',
-                            Icons.calendar_month,
-                            _greenMood,
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      CycleHistoryScreen(userId: widget.userId),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionButton(
-                            'Talk to AI',
-                            Icons.chat_bubble_outline,
-                            _purpleMood,
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      MenstruationAIChatScreen(
+                    Consumer<LocalizationProvider>(
+                      builder: (context, localization, _) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionButton(
+                                localization.getString('cycle_calendar'),
+                                Icons.calendar_month,
+                                _greenMood,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CycleHistoryScreen(
                                         userId: widget.userId,
                                       ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionButton(
+                                localization.getString('ai_chat'),
+                                Icons.chat_bubble_outline,
+                                _purpleMood,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          MenstruationAIChatScreen(
+                                            userId: widget.userId,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 24),

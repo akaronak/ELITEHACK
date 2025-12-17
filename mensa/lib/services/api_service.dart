@@ -442,15 +442,16 @@ class ApiService {
     }
   }
 
-  // Menstruation AI Chat
+  // Menstruation AI Chat (uses Ollama with Gemini fallback)
   Future<String?> sendMenstruationChatMessage({
     required String userId,
     required String message,
     List<Map<String, dynamic>>? history,
   }) async {
     try {
+      // Try Ollama first
       final response = await http.post(
-        Uri.parse('$baseUrl/ai/chat/menstruation'),
+        Uri.parse('$baseUrl/ollama/chat/menstruation'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,
@@ -461,27 +462,42 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint('💬 Response from ${data['source'] ?? 'unknown'}');
         return data['response'];
-      } else if (response.statusCode == 500) {
-        final data = jsonDecode(response.body);
-        return data['fallback'];
+      } else if (response.statusCode == 503) {
+        // Fallback to Gemini
+        debugPrint('⚠️ Ollama unavailable, trying Gemini...');
+        final geminiResponse = await http.post(
+          Uri.parse('$baseUrl/ai/chat/menstruation'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'message': message,
+            'history': history ?? [],
+          }),
+        );
+        if (geminiResponse.statusCode == 200) {
+          final data = jsonDecode(geminiResponse.body);
+          return data['response'];
+        }
       }
       return null;
     } catch (e) {
-      print('Error sending menstruation chat message: $e');
+      debugPrint('Error sending menstruation chat message: $e');
       return 'Sorry, I\'m having trouble connecting. Please check your internet connection and try again.';
     }
   }
 
-  // Menopause AI Chat
+  // Menopause AI Chat (uses Ollama with Gemini fallback)
   Future<String?> sendMenopauseChatMessage({
     required String userId,
     required String message,
     List<Map<String, dynamic>>? history,
   }) async {
     try {
+      // Try Ollama first
       final response = await http.post(
-        Uri.parse('$baseUrl/ai/chat/menopause'),
+        Uri.parse('$baseUrl/ollama/chat/menopause'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,
@@ -492,14 +508,28 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint('💬 Response from ${data['source'] ?? 'unknown'}');
         return data['response'];
-      } else if (response.statusCode == 500) {
-        final data = jsonDecode(response.body);
-        return data['fallback'];
+      } else if (response.statusCode == 503) {
+        // Fallback to Gemini
+        debugPrint('⚠️ Ollama unavailable, trying Gemini...');
+        final geminiResponse = await http.post(
+          Uri.parse('$baseUrl/ai/chat/menopause'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'message': message,
+            'history': history ?? [],
+          }),
+        );
+        if (geminiResponse.statusCode == 200) {
+          final data = jsonDecode(geminiResponse.body);
+          return data['response'];
+        }
       }
       return null;
     } catch (e) {
-      print('Error sending menopause chat message: $e');
+      debugPrint('Error sending menopause chat message: $e');
       return 'Sorry, I\'m having trouble connecting. Please check your internet connection and try again.';
     }
   }
@@ -570,15 +600,16 @@ class ApiService {
     }
   }
 
-  // Education AI Chat
+  // Education AI Chat (uses Ollama with Gemini fallback)
   Future<String?> sendEducationChatMessage({
     required String userId,
     required String message,
     Map<String, dynamic>? context,
   }) async {
     try {
+      // Try Ollama first
       final response = await http.post(
-        Uri.parse('$baseUrl/ai/chat/education'),
+        Uri.parse('$baseUrl/ollama/chat/education'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,
@@ -589,15 +620,44 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint('💬 Response from ${data['source'] ?? 'unknown'}');
         return data['response'];
-      } else if (response.statusCode == 500) {
-        final data = jsonDecode(response.body);
-        return data['fallback'];
+      } else if (response.statusCode == 503) {
+        // Fallback to Gemini
+        debugPrint('⚠️ Ollama unavailable, trying Gemini...');
+        final geminiResponse = await http.post(
+          Uri.parse('$baseUrl/ai/chat/education'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'message': message,
+            'context': context ?? {},
+          }),
+        );
+        if (geminiResponse.statusCode == 200) {
+          final data = jsonDecode(geminiResponse.body);
+          return data['response'];
+        }
       }
       return null;
     } catch (e) {
-      print('Error sending education chat message: $e');
+      debugPrint('Error sending education chat message: $e');
       return 'Sorry, I\'m having trouble connecting. Please check your internet connection and try again.';
+    }
+  }
+
+  // Get AI Service Status
+  Future<Map<String, dynamic>?> getAIServiceStatus() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/ollama/status'));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting AI service status: $e');
+      return null;
     }
   }
 

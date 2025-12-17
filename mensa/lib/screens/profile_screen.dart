@@ -1846,6 +1846,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Color Scheme Section
+                  Text(
+                    localization.getString('color_scheme'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        RadioListTile<AppColorScheme>(
+                          title: Text(localization.getString('color_purple')),
+                          value: AppColorScheme.purple,
+                          groupValue: theme.colorScheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setColorScheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<AppColorScheme>(
+                          title: Text(localization.getString('color_rose')),
+                          value: AppColorScheme.rose,
+                          groupValue: theme.colorScheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setColorScheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<AppColorScheme>(
+                          title: Text(localization.getString('color_teal')),
+                          value: AppColorScheme.teal,
+                          groupValue: theme.colorScheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setColorScheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<AppColorScheme>(
+                          title: Text(localization.getString('color_amber')),
+                          value: AppColorScheme.amber,
+                          groupValue: theme.colorScheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setColorScheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<AppColorScheme>(
+                          title: Text(localization.getString('color_indigo')),
+                          value: AppColorScheme.indigo,
+                          groupValue: theme.colorScheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              themeProvider.setColorScheme(value);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
                   // Language Section
                   Text(
                     localization.getString('language'),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:provider/provider.dart';
 import '../models/chat_message.dart';
 import '../services/api_service.dart';
+import '../providers/localization_provider.dart';
 
 class EducationChatScreen extends StatefulWidget {
   final String userId;
@@ -171,39 +173,47 @@ WHAT TO AVOID:
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: _purpleAccent.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.school, color: _purpleAccent, size: 20),
-            ),
-            const SizedBox(width: 12),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        title: Consumer<LocalizationProvider>(
+          builder: (context, localization, _) {
+            return Row(
               children: [
-                Text(
-                  'Educate Me',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _purpleAccent.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.school,
+                    color: _purpleAccent,
+                    size: 20,
                   ),
                 ),
-                Text(
-                  'Learn about your health',
-                  style: TextStyle(
-                    color: Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.normal,
-                  ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localization.getString('educate_me'),
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      localization.getString('learn_about'),
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
       body: Column(
@@ -358,23 +368,27 @@ WHAT TO AVOID:
                         color: _lightPink,
                         borderRadius: BorderRadius.circular(24),
                       ),
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: const InputDecoration(
-                          hintText: 'Ask me anything...',
-                          border: InputBorder.none,
-                          hintStyle: TextStyle(
-                            color: Colors.black38,
-                            fontSize: 15,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.black87,
-                        ),
-                        maxLines: null,
-                        textCapitalization: TextCapitalization.sentences,
-                        onSubmitted: (_) => _sendMessage(),
+                      child: Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              hintText: localization.getString('ask_question'),
+                              border: InputBorder.none,
+                              hintStyle: const TextStyle(
+                                color: Colors.black38,
+                                fontSize: 15,
+                              ),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                            ),
+                            maxLines: null,
+                            textCapitalization: TextCapitalization.sentences,
+                            onSubmitted: (_) => _sendMessage(),
+                          );
+                        },
                       ),
                     ),
                   ),

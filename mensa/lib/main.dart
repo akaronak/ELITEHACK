@@ -72,8 +72,8 @@ class MensaApp extends StatelessWidget {
           return MaterialApp(
             title: 'Mensa - Women\'s Health',
             debugShowCheckedModeBanner: false,
-            theme: ThemeProvider.getLightTheme(),
-            darkTheme: ThemeProvider.getDarkTheme(),
+            theme: themeProvider.getLightTheme(),
+            darkTheme: themeProvider.getDarkTheme(),
             themeMode: themeProvider.themeMode,
             locale: Locale(localizationProvider.language),
             home: isLoggedIn && userId != null

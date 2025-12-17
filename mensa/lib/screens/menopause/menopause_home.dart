@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
+import '../../providers/localization_provider.dart';
 import 'menopause_ai_chat_screen.dart';
 import 'menopause_history_screen.dart';
 import 'menopause_report_screen.dart';
@@ -165,13 +167,17 @@ class _MenopauseHomeState extends State<MenopauseHome> {
             );
           },
         ),
-        title: const Text(
-          'Menopause Tracker',
-          style: TextStyle(
-            color: Colors.black87,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Consumer<LocalizationProvider>(
+          builder: (context, localization, _) {
+            return Text(
+              localization.getString('menopause_tracker'),
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+          },
         ),
         centerTitle: true,
         actions: [
@@ -222,13 +228,17 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                         size: 18,
                       ),
                       const SizedBox(width: 6),
-                      const Text(
-                        'Report',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('report'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -265,97 +275,112 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                           ),
                         ],
                       ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Good Morning! 💜',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Managing your wellness journey',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black.withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      child: Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Column(
                             children: [
-                              _buildStatChip(
-                                'Days Tracked',
-                                '$_totalDaysTracked',
-                                Icons.calendar_today,
+                              const Text(
+                                'Good Morning! 💜',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
-                              _buildStatChip(
-                                'Avg Symptoms',
-                                '${_avgSymptomsPerDay.toStringAsFixed(1)}/day',
-                                Icons.trending_down,
+                              const SizedBox(height: 8),
+                              Text(
+                                'Managing your wellness journey',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black.withOpacity(0.6),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildStatChip(
+                                    localization.getString('logs'),
+                                    '$_totalDaysTracked',
+                                    Icons.calendar_today,
+                                  ),
+                                  _buildStatChip(
+                                    localization.getString('symptoms'),
+                                    '${_avgSymptomsPerDay.toStringAsFixed(1)}/day',
+                                    Icons.trending_down,
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
+                          );
+                        },
                       ),
                     ),
 
                     const SizedBox(height: 24),
 
                     // Quick Actions
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            'History',
-                            Icons.history,
-                            _primaryPurple,
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MenopauseHistoryScreen(
-                                    userId: widget.userId,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildActionButton(
-                            'Talk to AI',
-                            Icons.chat_bubble_outline,
-                            _pinkAccent,
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MenopauseAIChatScreen(
-                                    userId: widget.userId,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                    Consumer<LocalizationProvider>(
+                      builder: (context, localization, _) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: _buildActionButton(
+                                localization.getString('cycle_history'),
+                                Icons.history,
+                                _primaryPurple,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          MenopauseHistoryScreen(
+                                            userId: widget.userId,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildActionButton(
+                                localization.getString('ai_chat'),
+                                Icons.chat_bubble_outline,
+                                _pinkAccent,
+                                () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          MenopauseAIChatScreen(
+                                            userId: widget.userId,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 32),
 
                     // Educational Section Header
-                    const Text(
-                      'Understanding Menopause',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                    Consumer<LocalizationProvider>(
+                      builder: (context, localization, _) {
+                        return Text(
+                          'Understanding ${localization.getString('menopause')}',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
 
