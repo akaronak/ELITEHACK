@@ -301,15 +301,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              _nameController.text.isEmpty
-                                  ? 'Your Profile'
-                                  : _nameController.text,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
+                            Consumer<LocalizationProvider>(
+                              builder: (context, localization, _) {
+                                return Text(
+                                  _nameController.text.isEmpty
+                                      ? localization.getString('your_profile')
+                                      : _nameController.text,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                );
+                              },
                             ),
                             if (_profile != null) ...[
                               const SizedBox(height: 8),
@@ -328,13 +332,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
 
                       // Tracker Selection
-                      const Text(
-                        'Active Tracker',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('active_tracker'),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -342,39 +350,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Icons.swap_horiz,
                         iconColor: const Color(0xFF4CAF50),
                         children: [
-                          const Text(
-                            'Current Tracker',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
+                          Consumer<LocalizationProvider>(
+                            builder: (context, localization, _) {
+                              return Text(
+                                localization.getString('current_tracker'),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 12),
                           _buildTrackerSelector(),
                           const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 16,
-                                  color: Colors.orange,
+                          Consumer<LocalizationProvider>(
+                            builder: (context, localization, _) {
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Changing tracker will switch your home screen. Your data is preserved.',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        localization.getString(
+                                          'changing_tracker_info',
+                                        ),
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -382,13 +400,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
 
                       // Basic Information
-                      const Text(
-                        'Basic Information',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('basic_information'),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -408,32 +430,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildTextField(
-                              controller: _nameController,
-                              label: 'Full Name',
-                              icon: Icons.badge,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your name';
-                                }
-                                return null;
+                            Consumer<LocalizationProvider>(
+                              builder: (context, localization, _) {
+                                return _buildTextField(
+                                  controller: _nameController,
+                                  label: localization.getString('full_name'),
+                                  icon: Icons.badge,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return localization.getString(
+                                            'please_enter',
+                                          ) +
+                                          ' ' +
+                                          localization.getString('full_name');
+                                    }
+                                    return null;
+                                  },
+                                );
                               },
                             ),
                             const SizedBox(height: 16),
-                            _buildTextField(
-                              controller: _ageController,
-                              label: 'Age',
-                              icon: Icons.cake,
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your age';
-                                }
-                                final age = int.tryParse(value);
-                                if (age == null || age < 1 || age > 120) {
-                                  return 'Please enter a valid age';
-                                }
-                                return null;
+                            Consumer<LocalizationProvider>(
+                              builder: (context, localization, _) {
+                                return _buildTextField(
+                                  controller: _ageController,
+                                  label: localization.getString('age'),
+                                  icon: Icons.cake,
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return localization.getString(
+                                            'please_enter',
+                                          ) +
+                                          ' ' +
+                                          localization.getString('age');
+                                    }
+                                    final age = int.tryParse(value);
+                                    if (age == null || age < 1 || age > 120) {
+                                      return localization.getString(
+                                        'invalid_age',
+                                      );
+                                    }
+                                    return null;
+                                  },
+                                );
                               },
                             ),
                           ],
@@ -520,13 +560,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
 
                       // Medical Information
-                      const Text(
-                        'Medical Information',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('medical_information'),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -563,13 +607,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
 
                       // Medical Report OCR Analysis
-                      const Text(
-                        'Medical Report Analysis',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('medical_report_analysis'),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -577,21 +625,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         icon: Icons.document_scanner,
                         iconColor: Colors.blue,
                         children: [
-                          const Text(
-                            'Upload Medical Report',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Upload an image of your medical report and our AI will analyze it and provide an easy-to-understand summary.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                            ),
+                          Consumer<LocalizationProvider>(
+                            builder: (context, localization, _) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    localization.getString(
+                                      'upload_medical_report',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    localization.getString(
+                                      'upload_medical_report_desc',
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
@@ -775,13 +836,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 32),
 
                       // Emergency Contact
-                      const Text(
-                        'Emergency Contact',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            localization.getString('emergency_contact'),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 

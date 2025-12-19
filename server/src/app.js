@@ -30,6 +30,7 @@ const notificationRoutes = require('./routes/notification.routes');
 const appointmentsRoutes = require('./routes/appointments.routes');
 const emergencyRoutes = require('./routes/emergency.routes');
 const ocrRoutes = require('./routes/ocr.routes');
+const audioEmotionRoutes = require('./routes/audioEmotion.routes');
 
 app.use('/api/user', userRoutes);
 app.use('/api/user', userProfileRoutes);
@@ -45,6 +46,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/ocr', ocrRoutes);
+app.use('/api/audio-emotion', audioEmotionRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -14,6 +14,7 @@ import 'profile_screen.dart';
 import 'appointments_screen.dart';
 import 'pregnancy_history_screen.dart';
 import 'pregnancy_report_screen.dart';
+import 'logging/quick_log_hub.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
@@ -318,6 +319,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildActionButton(
+                      'Quick Log',
+                      Icons.flash_on,
+                      _yellowAccent,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              QuickLogHub(userId: widget.userId),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionButton(
                       'Weekly Progress',
                       Icons.calendar_month,
                       _primaryPink,
@@ -332,7 +348,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
                   Expanded(
                     child: _buildActionButton(
                       'Daily Log',
@@ -343,6 +365,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         MaterialPageRoute(
                           builder: (context) =>
                               DailyLogScreen(userId: widget.userId),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildActionButton(
+                      'Nutrition',
+                      Icons.restaurant,
+                      _greenAccent,
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NutritionScreen(
+                            userId: widget.userId,
+                            profile: _profile!,
+                          ),
                         ),
                       ),
                     ),

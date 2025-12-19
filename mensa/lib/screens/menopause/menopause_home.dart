@@ -279,9 +279,9 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                         builder: (context, localization, _) {
                           return Column(
                             children: [
-                              const Text(
-                                'Good Morning! 💜',
-                                style: TextStyle(
+                              Text(
+                                localization.getString('good_morning'),
+                                style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black87,
@@ -289,7 +289,7 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Managing your wellness journey',
+                                localization.getString('managing_wellness'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.black.withOpacity(0.6),
@@ -301,13 +301,13 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                                     MainAxisAlignment.spaceAround,
                                 children: [
                                   _buildStatChip(
-                                    localization.getString('logs'),
+                                    localization.getString('days_tracked'),
                                     '$_totalDaysTracked',
                                     Icons.calendar_today,
                                   ),
                                   _buildStatChip(
-                                    localization.getString('symptoms'),
-                                    '${_avgSymptomsPerDay.toStringAsFixed(1)}/day',
+                                    localization.getString('avg_symptoms'),
+                                    '${_avgSymptomsPerDay.toStringAsFixed(1)}${localization.getString('per_day')}',
                                     Icons.trending_down,
                                   ),
                                 ],

@@ -9,7 +9,7 @@ import '../models/checklist_status.dart';
 class ApiService {
   // Android emulator uses 10.0.2.2 to access host machine's localhost https://mensa-wieee.onrender.com
   // This works consistently without needing to change IP addresses
-  static const String baseUrl = 'http://10.0.2.2:3000/api';
+  static const String baseUrl = 'http://192.168.0.120:3000/api';
 
   // User Pregnancy Profile
   Future<UserPregnancy?> getPregnancyProfile(String userId) async {
@@ -725,5 +725,90 @@ class ApiService {
       'PDF picker: Please use image picker for now or upload via camera/gallery',
     );
     return null;
+  }
+
+  // Audio Emotion Detection
+  Future<Map<String, dynamic>?> detectAudioEmotion({
+    required String base64Audio,
+    String mimeType = 'audio/wav',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/audio-emotion/detect'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'audio': base64Audio, 'mimeType': mimeType}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error detecting audio emotion: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> analyzeAudio({
+    required String base64Audio,
+    required String transcription,
+    String mimeType = 'audio/wav',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/audio-emotion/analyze'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'audio': base64Audio,
+          'transcription': transcription,
+          'mimeType': mimeType,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error analyzing audio: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getAudioEmotionStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/audio-emotion/status'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting audio emotion status: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> extractSymptoms({
+    required String text,
+    required String emotion,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/audio-emotion/extract-symptoms'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'text': text, 'emotion': emotion}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error extracting symptoms: $e');
+      return null;
+    }
   }
 }

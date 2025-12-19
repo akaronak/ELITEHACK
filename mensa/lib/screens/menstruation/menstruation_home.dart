@@ -478,7 +478,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                           return Column(
                             children: [
                               Text(
-                                'Day $_currentCycleDay',
+                                '${localization.getString('day')} $_currentCycleDay',
                                 style: const TextStyle(
                                   fontSize: 48,
                                   fontWeight: FontWeight.bold,
