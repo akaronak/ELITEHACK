@@ -1,314 +1,211 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../models/user_pregnancy.dart';
-import '../services/api_service.dart';
-import '../services/date_calculator_service.dart';
-import 'dashboard_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'auth/login_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final String userId;
-
-  const OnboardingScreen({super.key, required this.userId});
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _formKey = GlobalKey<FormState>();
-  DateTime? _lmpDate;
-  DateTime? _dueDate;
-  bool _useLMP = true;
-  final List<String> _selectedAllergies = [];
-  final List<String> _selectedPreferences = [];
+  late PageController _pageController;
+  int _currentPage = 0;
 
-  final List<String> _allergyOptions = [
-    'Lactose',
-    'Dairy',
-    'Eggs',
-    'Fish',
-    'Shellfish',
-    'Nuts',
-    'Tree Nuts',
-    'Peanuts',
-    'Gluten',
-    'Wheat',
-    'Soy',
+  // Onboarding data
+  final List<OnboardingData> _onboardingData = [
+    OnboardingData(
+      title: 'We Listen and We don\'t Judge',
+      emoji: '👂',
+      description:
+          'Your health journey is personal. We\'re here to listen without judgment, supporting every step of your wellness.',
+      color: const Color(0xFFE8C4C4),
+    ),
+    OnboardingData(
+      title: 'Your secrets stays yours, pinky promise',
+      emoji: '🤝',
+      description:
+          'Your privacy matters. All your health data is encrypted and stays completely private. We promise.',
+      color: const Color(0xFFD4C4E8),
+    ),
+    OnboardingData(
+      title: 'We embrace the Way You are!',
+      emoji: '💜',
+      description:
+          'Every body is different, every cycle is unique. We celebrate you exactly as you are, with all your beautiful differences.',
+      color: const Color(0xFFB8D4C8),
+    ),
   ];
 
-  final List<String> _preferenceOptions = [
-    'Vegetarian',
-    'Vegan',
-    'Pescatarian',
-    'Halal',
-    'Kosher',
-  ];
-
-  final ApiService _apiService = ApiService();
-
-  Future<void> _selectDate(BuildContext context, bool isLMP) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().subtract(const Duration(days: 60)),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
-    );
-
-    if (picked != null) {
-      setState(() {
-        if (isLMP) {
-          _lmpDate = picked;
-          _dueDate = DateCalculatorService.calculateDueDateFromLMP(picked);
-        } else {
-          _dueDate = picked;
-          _lmpDate = DateCalculatorService.calculateLMPFromDueDate(picked);
-        }
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
   }
 
-  Future<void> _submitProfile() async {
-    if (_formKey.currentState!.validate()) {
-      if (_lmpDate == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select a date')));
-        return;
-      }
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
-      final profile = UserPregnancy(
-        userId: widget.userId,
-        lmpDate: _lmpDate!,
-        dueDate: _dueDate!,
-        allergies: _selectedAllergies,
-        preferences: _selectedPreferences,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
-
-      final success = await _apiService.createOrUpdatePregnancyProfile(profile);
-
-      if (success && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardScreen(userId: widget.userId),
-          ),
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error saving profile. Please try again.'),
-          ),
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F7),
-      appBar: AppBar(
-        title: const Text('Pregnancy Tracker Setup'),
-        backgroundColor: const Color(0xFFFFB6C1),
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Page View
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: _onboardingData.length,
+            itemBuilder: (context, index) {
+              return _buildOnboardingPage(_onboardingData[index]);
+            },
+          ),
+
+          // Dots Indicator
+          Positioned(
+            bottom: 120,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _onboardingData.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                  width: _currentPage == index ? 32 : 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: _currentPage == index
+                        ? _onboardingData[index].color
+                        : Colors.grey[300],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Get Started Button
+          Positioned(
+            bottom: 40,
+            left: 20,
+            right: 20,
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _completeOnboarding,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _onboardingData[_currentPage].color,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 8,
+                      shadowColor: _onboardingData[_currentPage].color
+                          .withValues(alpha: 0.4),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_currentPage < _onboardingData.length - 1)
+                  GestureDetector(
+                    onTap: () {
+                      _pageController.nextPage(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Text(
+                      'Skip',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
+    );
+  }
+
+  Widget _buildOnboardingPage(OnboardingData data) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            data.color.withValues(alpha: 0.1),
+            data.color.withValues(alpha: 0.05),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Welcome to Your Pregnancy Journey!',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
+              // Emoji
+              Text(data.emoji, style: const TextStyle(fontSize: 120)),
+              const SizedBox(height: 40),
 
-              // Date Selection
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Calculate Your Due Date',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text('Last Period'),
-                              value: true,
-                              groupValue: _useLMP,
-                              onChanged: (value) =>
-                                  setState(() => _useLMP = value!),
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text('Due Date'),
-                              value: false,
-                              groupValue: _useLMP,
-                              onChanged: (value) =>
-                                  setState(() => _useLMP = value!),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      ElevatedButton.icon(
-                        onPressed: () => _selectDate(context, _useLMP),
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text(
-                          _useLMP
-                              ? (_lmpDate == null
-                                    ? 'Select Last Period Date'
-                                    : 'LMP: ${DateFormat('MMM dd, yyyy').format(_lmpDate!)}')
-                              : (_dueDate == null
-                                    ? 'Select Due Date'
-                                    : 'Due: ${DateFormat('MMM dd, yyyy').format(_dueDate!)}'),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                      ),
-
-                      if (_dueDate != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFE4E1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                'Estimated Due Date: ${DateFormat('MMM dd, yyyy').format(_dueDate!)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Current Week: ${DateCalculatorService.calculateCurrentWeek(_lmpDate!)}',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+              // Title
+              Text(
+                data.title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  height: 1.3,
                 ),
               ),
+              const SizedBox(height: 24),
 
-              const SizedBox(height: 20),
-
-              // Allergies
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Food Allergies',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: _allergyOptions.map((allergy) {
-                          final isSelected = _selectedAllergies.contains(
-                            allergy,
-                          );
-                          return FilterChip(
-                            label: Text(allergy),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedAllergies.add(allergy);
-                                } else {
-                                  _selectedAllergies.remove(allergy);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Dietary Preferences
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Dietary Preferences',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: _preferenceOptions.map((pref) {
-                          final isSelected = _selectedPreferences.contains(
-                            pref,
-                          );
-                          return FilterChip(
-                            label: Text(pref),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              setState(() {
-                                if (selected) {
-                                  _selectedPreferences.add(pref);
-                                } else {
-                                  _selectedPreferences.remove(pref);
-                                }
-                              });
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              ElevatedButton(
-                onPressed: _submitProfile,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 56),
-                  backgroundColor: const Color(0xFFFFB6C1),
-                ),
-                child: const Text(
-                  'Start My Journey',
-                  style: TextStyle(fontSize: 18),
+              // Description
+              Text(
+                data.description,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black.withValues(alpha: 0.6),
+                  height: 1.5,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -317,4 +214,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
+
+class OnboardingData {
+  final String title;
+  final String emoji;
+  final String description;
+  final Color color;
+
+  OnboardingData({
+    required this.title,
+    required this.emoji,
+    required this.description,
+    required this.color,
+  });
 }
