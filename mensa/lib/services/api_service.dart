@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_pregnancy.dart';
@@ -9,7 +8,7 @@ import '../models/checklist_status.dart';
 class ApiService {
   // Android emulator uses 10.0.2.2 to access host machine's localhost https://mensa-wieee.onrender.com
   // This works consistently without needing to change IP addresses
-  static const String baseUrl = 'http://192.168.0.120:3000/api';
+  static const String baseUrl = 'http://10.0.2.2:3000/api';
 
   // User Pregnancy Profile
   Future<UserPregnancy?> getPregnancyProfile(String userId) async {
@@ -808,6 +807,116 @@ class ApiService {
       return null;
     } catch (e) {
       debugPrint('Error extracting symptoms: $e');
+      return null;
+    }
+  }
+
+  // Agora Conversational AI
+  Future<Map<String, dynamic>?> generateRTCToken({
+    required String channelName,
+    required int uid,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/agora-ai/generate-token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'channelName': channelName, 'uid': uid}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error generating RTC token: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> startAgoraAgent({
+    required String channelName,
+    required String agentName,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/agora-ai/start-agent'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'channelName': channelName, 'agentName': agentName}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error starting Agora agent: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> stopAgoraAgent({
+    required String agentId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/agora-ai/stop-agent'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'agentId': agentId}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error stopping Agora agent: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getAgoraAgentStatus({
+    required String agentId,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/agora-ai/agent-status/$agentId'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting agent status: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getAgoraAIStatus() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/agora-ai/status'));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting Agora AI status: $e');
+      return null;
+    }
+  }
+
+  Future<String?> getAgoraGreeting() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/agora-ai/greeting'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['greeting'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting Agora greeting: $e');
       return null;
     }
   }

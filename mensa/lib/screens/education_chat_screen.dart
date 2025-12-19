@@ -3,6 +3,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 import '../models/chat_message.dart';
 import '../services/api_service.dart';
+import '../services/agora_ai_service.dart';
 import '../providers/localization_provider.dart';
 
 class EducationChatScreen extends StatefulWidget {
@@ -16,10 +17,12 @@ class EducationChatScreen extends StatefulWidget {
 
 class _EducationChatScreenState extends State<EducationChatScreen> {
   final ApiService _apiService = ApiService();
+  late AgoraAIService _agoraAIService;
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
+  final bool _useAgoraAI = true; // Toggle between Agora AI and backend
 
   // Modern color palette
   static const Color _lightPink = Color(0xFFF5E6E6);
@@ -31,7 +34,19 @@ class _EducationChatScreenState extends State<EducationChatScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeAgoraAI();
     _addWelcomeMessage();
+  }
+
+  void _initializeAgoraAI() {
+    // Get Gemini API key from environment or use fallback
+    const geminiApiKey = String.fromEnvironment(
+      'GEMINI_API_KEY',
+      defaultValue: 'AIzaSyAfx795kOnCdA3aPFH2k4ESIFYbVDHEuY8',
+    );
+
+    _agoraAIService = AgoraAIService(geminiApiKey: geminiApiKey);
+    debugPrint('✅ Agora AI Service initialized');
   }
 
   void _addWelcomeMessage() {
@@ -110,13 +125,27 @@ WHAT TO AVOID:
 - Topics unrelated to periods, menopause, pregnancy''',
       };
 
-      final response = await _apiService.sendEducationChatMessage(
-        userId: widget.userId,
-        message: text,
-        context: context,
-      );
+      String response;
 
-      if (response != null && mounted) {
+      if (_useAgoraAI) {
+        // Use Agora AI (Gemini) for faster, more reliable responses
+        debugPrint('🤖 Using Agora AI (Gemini) for response');
+        response = await _agoraAIService.getEducationResponse(
+          text,
+          context: context,
+        );
+      } else {
+        // Fallback to backend API
+        debugPrint('🔄 Using backend API for response');
+        final apiResponse = await _apiService.sendEducationChatMessage(
+          userId: widget.userId,
+          message: text,
+          context: context,
+        );
+        response = apiResponse ?? 'Sorry, I could not process that.';
+      }
+
+      if (mounted) {
         setState(() {
           _messages.add(
             ChatMessage(
@@ -129,7 +158,7 @@ WHAT TO AVOID:
         _scrollToBottom();
       }
     } catch (e) {
-      debugPrint('Error sending message: $e');
+      debugPrint('❌ Error sending message: $e');
       if (mounted) {
         setState(() {
           _messages.add(

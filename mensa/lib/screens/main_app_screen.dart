@@ -30,11 +30,23 @@ class _MainAppScreenState extends State<MainAppScreen> {
     try {
       debugPrint('🔍 Checking profile for user: ${widget.userId}');
       final apiService = ApiService();
-      final profileData = await apiService.getUserProfile(widget.userId);
+
+      // Add timeout to prevent hanging
+      final profileData = await apiService
+          .getUserProfile(widget.userId)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              debugPrint('⏱️ Profile check timeout - treating as no profile');
+              return null;
+            },
+          );
 
       debugPrint(
         '📦 Profile data received: ${profileData != null ? "Found" : "Not found"}',
       );
+
+      if (!mounted) return;
 
       setState(() {
         if (profileData != null) {
@@ -49,6 +61,8 @@ class _MainAppScreenState extends State<MainAppScreen> {
       });
     } catch (e) {
       debugPrint('❌ Error checking profile: $e');
+      if (!mounted) return;
+
       setState(() {
         _userProfile = null;
         _isLoading = false;

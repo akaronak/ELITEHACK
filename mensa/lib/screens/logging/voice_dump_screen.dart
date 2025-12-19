@@ -105,7 +105,10 @@ class _VoiceDumpScreenState extends State<VoiceDumpScreen>
 
       debugPrint('🎤 Starting audio recording to: $audioPath');
 
-      await _audioRecorder.startRecorder(toFile: audioPath, codec: Codec.wav);
+      await _audioRecorder.startRecorder(
+        toFile: audioPath,
+        codec: Codec.pcm16WAV,
+      );
 
       _audioFilePath = audioPath;
 

@@ -341,8 +341,8 @@ class _InitialOnboardingScreenState extends State<InitialOnboardingScreen> {
                 return 'Please enter your age';
               }
               final age = int.tryParse(value);
-              if (age == null || age < 10 || age > 60) {
-                return 'Please enter a valid age (10-60)';
+              if (age == null || age < 10 || age > 100) {
+                return 'Please enter a valid age (10-100)';
               }
               return null;
             },

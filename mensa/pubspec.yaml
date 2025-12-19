@@ -85,6 +85,11 @@ dependencies:
   flutter_sound: ^9.14.0
   permission_handler: ^12.0.1
   
+  # Agora conversational AI
+  agora_rtc_engine: ^6.3.5
+  google_generative_ai: ^0.4.0
+  just_audio: ^0.9.36
+  
 
 
 dev_dependencies:

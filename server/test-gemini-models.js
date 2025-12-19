@@ -16,7 +16,7 @@ const modelsToTest = [
   'gemini-pro',
   'gemini-1.5-pro',
   'gemini-1.5-flash',
-  'gemini-2.0-flash-exp',
+  'gemini-2.5-flash',
   'models/gemini-pro',
   'models/gemini-1.5-pro',
   'models/gemini-1.5-flash',

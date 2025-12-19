@@ -11,6 +11,7 @@ import '../providers/theme_provider.dart';
 import '../providers/localization_provider.dart';
 import 'auth/login_screen.dart';
 import 'education_chat_screen.dart';
+import 'agora_conversational_voice_agent.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -1372,6 +1373,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Icon(
                   Icons.arrow_forward_ios,
                   color: Color(0xFFD4C4E8),
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Voice Chat Button
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AgoraConversationalVoiceAgent(
+                  userId: widget.userId,
+                  agoraAppId: 'bb1ca613e3b94aa7af3eec189d172e99',
+                ),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFFFB6C1).withValues(alpha: 0.3),
+                  const Color(0xFFD4A5A5).withValues(alpha: 0.3),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFA67C7C), width: 2),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFA67C7C),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.mic, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Voice Chat',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Talk with AI about your health',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Color(0xFFA67C7C),
                   size: 16,
                 ),
               ],

@@ -16,6 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "agora-access-token": "^2.0.4",
+    "agora-token": "^2.0.5",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

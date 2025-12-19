@@ -31,6 +31,7 @@ const appointmentsRoutes = require('./routes/appointments.routes');
 const emergencyRoutes = require('./routes/emergency.routes');
 const ocrRoutes = require('./routes/ocr.routes');
 const audioEmotionRoutes = require('./routes/audioEmotion.routes');
+const agoraConversationalAIRoutes = require('./routes/agoraConversationalAI.routes');
 
 app.use('/api/user', userRoutes);
 app.use('/api/user', userProfileRoutes);
@@ -47,6 +48,7 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/emergency', emergencyRoutes);
 app.use('/api/ocr', ocrRoutes);
 app.use('/api/audio-emotion', audioEmotionRoutes);
+app.use('/api/agora-ai', agoraConversationalAIRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
