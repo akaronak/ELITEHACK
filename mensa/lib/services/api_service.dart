@@ -920,4 +920,255 @@ class ApiService {
       return null;
     }
   }
+
+  // Wallet APIs
+  Future<Map<String, dynamic>?> getUserWallet(String userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/wallet/$userId'));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching wallet: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> addWalletPoints(
+    String userId,
+    int amount,
+    String reason,
+    String category,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/wallet/$userId/add-points'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'amount': amount,
+          'reason': reason,
+          'category': category,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error adding points: $e');
+      return null;
+    }
+  }
+
+  Future<List<dynamic>?> getWalletHistory(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/wallet/$userId/history'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['history'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching wallet history: $e');
+      return null;
+    }
+  }
+
+  // Streak APIs
+  Future<Map<String, dynamic>?> getStreak(
+    String userId,
+    String category,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/streak/$userId/$category'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching streak: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> checkInStreak(
+    String userId,
+    String category,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/streak/$userId/$category/check-in'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error checking in streak: $e');
+      return null;
+    }
+  }
+
+  Future<List<dynamic>?> getAllStreaks(String userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/streak/$userId/all'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['streaks'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching all streaks: $e');
+      return null;
+    }
+  }
+
+  // Voucher APIs
+  Future<List<dynamic>?> getAvailableVouchers() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/voucher/available'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['vouchers'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching vouchers: $e');
+      return null;
+    }
+  }
+
+  Future<List<dynamic>?> getUserVouchers(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/voucher/$userId/my-vouchers'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['vouchers'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user vouchers: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> purchaseVoucher(
+    String userId,
+    String voucherId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voucher/$userId/purchase'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'voucher_id': voucherId}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return jsonDecode(response.body);
+    } catch (e) {
+      debugPrint('Error purchasing voucher: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> redeemVoucher(
+    String userId,
+    String userVoucherId,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voucher/$userId/redeem/$userVoucherId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error redeeming voucher: $e');
+      return null;
+    }
+  }
+
+  // Get streak summary
+  Future<Map<String, dynamic>?> getStreakSummary(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/streak/$userId/summary'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching streak summary: $e');
+      return null;
+    }
+  }
+
+  // Validate streaks (check for broken streaks)
+  Future<Map<String, dynamic>?> validateStreaks(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/streak/$userId/validate'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error validating streaks: $e');
+      return null;
+    }
+  }
+
+  // Deduct points from wallet
+  Future<Map<String, dynamic>?> deductWalletPoints(
+    String userId,
+    int amount,
+    String reason,
+    String category,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/wallet/$userId/deduct-points'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'amount': amount,
+          'reason': reason,
+          'category': category,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error deducting points: $e');
+      return null;
+    }
+  }
 }

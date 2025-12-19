@@ -3,8 +3,12 @@ import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../services/notification_service.dart';
 import '../../providers/localization_provider.dart';
+import '../../widgets/streak_widget.dart';
+import '../../screens/wallet_screen.dart';
+import '../../screens/voucher_screen.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
+import 'ranting_ai_screen.dart';
 import 'cycle_setup_screen.dart';
 import 'pcos_log_screen.dart';
 import 'menstruation_report_screen.dart';
@@ -264,6 +268,32 @@ class _MenstruationHomeState extends State<MenstruationHome> {
         ),
         centerTitle: true,
         actions: [
+          // Wallet Button
+          IconButton(
+            icon: const Icon(Icons.wallet, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Wallet',
+          ),
+          // Voucher Button
+          IconButton(
+            icon: const Icon(Icons.card_giftcard, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VoucherScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Vouchers',
+          ),
           Container(
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
@@ -454,6 +484,17 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Streak Widget
+                    StreakWidget(
+                      userId: widget.userId,
+                      category: 'menstruation',
+                      onStreakUpdated: () {
+                        setState(() {});
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // Cycle Day Card
                     Container(
                       width: double.infinity,
@@ -522,43 +563,72 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                     // Quick Actions
                     Consumer<LocalizationProvider>(
                       builder: (context, localization, _) {
-                        return Row(
+                        return Column(
                           children: [
-                            Expanded(
-                              child: _buildActionButton(
-                                localization.getString('cycle_calendar'),
-                                Icons.calendar_month,
-                                _greenMood,
-                                () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CycleHistoryScreen(
-                                        userId: widget.userId,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildActionButton(
+                                    localization.getString('cycle_calendar'),
+                                    Icons.calendar_month,
+                                    _greenMood,
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CycleHistoryScreen(
+                                                userId: widget.userId,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildActionButton(
+                                    localization.getString('ai_chat'),
+                                    Icons.chat_bubble_outline,
+                                    _purpleMood,
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              MenstruationAIChatScreen(
+                                                userId: widget.userId,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
-                                localization.getString('ai_chat'),
-                                Icons.chat_bubble_outline,
-                                _purpleMood,
-                                () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          MenstruationAIChatScreen(
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildActionButton(
+                                    'Ranting AI',
+                                    Icons.mic,
+                                    const Color(0xFFD4C4E8),
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => RantingAIScreen(
                                             userId: widget.userId,
                                           ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(child: Container()),
+                              ],
                             ),
                           ],
                         );

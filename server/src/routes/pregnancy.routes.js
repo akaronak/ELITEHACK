@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../services/database');
 
-// Add or update menopause log (upsert)
+// Add or update pregnancy log (upsert)
 router.post('/:userId/log', (req, res) => {
   try {
     const { userId } = req.params;
@@ -13,7 +13,7 @@ router.post('/:userId/log', (req, res) => {
     const normalizedDate = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate()).toISOString();
     
     // Check if log exists for this date
-    const existingLogIndex = db.get('menopauseLogs')
+    const existingLogIndex = db.get('pregnancyLogs')
       .findIndex(log => log.user_id === userId && log.date === normalizedDate)
       .value();
 
@@ -26,7 +26,7 @@ router.post('/:userId/log', (req, res) => {
 
     if (existingLogIndex >= 0) {
       // Update existing log
-      db.get('menopauseLogs')
+      db.get('pregnancyLogs')
         .nth(existingLogIndex)
         .assign(logData)
         .write();
@@ -36,27 +36,27 @@ router.post('/:userId/log', (req, res) => {
       // Create new log
       logData.created_at = new Date().toISOString();
       
-      db.get('menopauseLogs')
+      db.get('pregnancyLogs')
         .push(logData)
         .write();
 
       // Check in for streak
-      checkInStreak(userId, 'menopause');
+      checkInStreak(userId, 'pregnancy');
 
       res.json({ success: true, message: 'Log saved successfully' });
     }
   } catch (error) {
-    console.error('Error saving menopause log:', error);
+    console.error('Error saving pregnancy log:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get menopause logs
+// Get pregnancy logs
 router.get('/:userId/logs', (req, res) => {
   try {
     const { userId } = req.params;
     
-    const logs = db.get('menopauseLogs')
+    const logs = db.get('pregnancyLogs')
       .filter({ user_id: userId })
       .sortBy('date')
       .reverse()
@@ -64,17 +64,91 @@ router.get('/:userId/logs', (req, res) => {
 
     res.json(logs);
   } catch (error) {
-    console.error('Error fetching menopause logs:', error);
+    console.error('Error fetching pregnancy logs:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Generate menopause report
+// Get pregnancy profile
+router.get('/:userId/profile', (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const profile = db.get('pregnancyProfiles')
+      .find({ user_id: userId })
+      .value();
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Pregnancy profile not found' });
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Error fetching pregnancy profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create or update pregnancy profile
+router.post('/:userId/profile', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { lmp_date, due_date, allergies, preferences } = req.body;
+
+    let profile = db.get('pregnancyProfiles')
+      .find({ user_id: userId })
+      .value();
+
+    if (profile) {
+      // Update existing
+      profile = {
+        ...profile,
+        lmp_date: lmp_date || profile.lmp_date,
+        due_date: due_date || profile.due_date,
+        allergies: allergies || profile.allergies,
+        preferences: preferences || profile.preferences,
+        updated_at: new Date().toISOString(),
+      };
+
+      db.get('pregnancyProfiles')
+        .find({ user_id: userId })
+        .assign(profile)
+        .write();
+    } else {
+      // Create new
+      profile = {
+        pregnancy_id: `preg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        user_id: userId,
+        lmp_date: lmp_date,
+        due_date: due_date,
+        allergies: allergies || [],
+        preferences: preferences || [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      db.get('pregnancyProfiles')
+        .push(profile)
+        .write();
+    }
+
+    res.json({
+      success: true,
+      message: 'Pregnancy profile saved successfully',
+      profile: profile,
+    });
+  } catch (error) {
+    console.error('Error saving pregnancy profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Generate pregnancy report
 router.post('/:userId/generate-report', async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const logs = db.get('menopauseLogs')
+    const logs = db.get('pregnancyLogs')
       .filter({ user_id: userId })
       .sortBy('date')
       .reverse()
@@ -83,18 +157,10 @@ router.post('/:userId/generate-report', async (req, res) => {
 
     if (logs.length === 0) {
       return res.json({
-        summary: 'Start tracking your symptoms to get personalized insights!',
+        summary: 'Start tracking your pregnancy to get personalized insights!',
         recommendations: [],
       });
     }
-
-    // Calculate statistics
-    const totalHotFlashes = logs.reduce((sum, log) => sum + (log.hot_flashes || 0), 0);
-    const avgHotFlashes = (totalHotFlashes / logs.length).toFixed(1);
-    
-    const avgSleepQuality = (
-      logs.reduce((sum, log) => sum + (log.sleep_quality || 0), 0) / logs.length
-    ).toFixed(1);
 
     // Count symptom frequency
     const symptomCounts = {};
@@ -113,50 +179,29 @@ router.post('/:userId/generate-report', async (req, res) => {
 
     // Generate summary
     let summary = `Based on ${logs.length} days of tracking:\n\n`;
-    summary += `• Average hot flashes: ${avgHotFlashes} per day\n`;
-    summary += `• Average sleep quality: ${avgSleepQuality}/10\n`;
     
     if (topSymptoms.length > 0) {
       summary += `• Most common symptoms: ${topSymptoms.join(', ')}\n\n`;
     }
 
-    // Add trend analysis
-    if (logs.length >= 7) {
-      const recentLogs = logs.slice(0, 7);
-      const olderLogs = logs.slice(7, 14);
-      
-      if (olderLogs.length > 0) {
-        const recentAvg = recentLogs.reduce((sum, log) => sum + (log.hot_flashes || 0), 0) / recentLogs.length;
-        const olderAvg = olderLogs.reduce((sum, log) => sum + (log.hot_flashes || 0), 0) / olderLogs.length;
-        
-        if (recentAvg < olderAvg) {
-          const decrease = (((olderAvg - recentAvg) / olderAvg) * 100).toFixed(0);
-          summary += `Great news! Your hot flashes have decreased by ${decrease}% this week. `;
-        } else if (recentAvg > olderAvg) {
-          summary += `Your hot flashes have increased slightly this week. Consider stress management techniques. `;
-        }
-      }
-    }
-
-    summary += '\n\nKeep tracking to see more personalized insights!';
+    summary += 'Keep tracking to see more personalized insights!';
 
     res.json({
       summary,
       statistics: {
         totalDays: logs.length,
-        avgHotFlashes,
-        avgSleepQuality,
         topSymptoms,
       },
       recommendations: [
-        'Maintain a consistent sleep schedule',
-        'Stay hydrated throughout the day',
-        'Practice stress-reduction techniques',
-        'Consider light exercise like walking or yoga',
+        'Stay hydrated and eat nutritious meals',
+        'Get regular prenatal checkups',
+        'Practice gentle exercise like walking',
+        'Get adequate rest and sleep',
+        'Manage stress with relaxation techniques',
       ],
     });
   } catch (error) {
-    console.error('Error generating menopause report:', error);
+    console.error('Error generating pregnancy report:', error);
     res.status(500).json({ error: error.message });
   }
 });

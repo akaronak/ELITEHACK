@@ -4,6 +4,9 @@ import '../models/user_pregnancy.dart';
 import '../models/appointment.dart';
 import '../services/api_service.dart';
 import '../services/date_calculator_service.dart';
+import '../widgets/streak_widget.dart';
+import 'wallet_screen.dart';
+import 'voucher_screen.dart';
 import 'daily_log_screen.dart';
 import 'nutrition_screen.dart';
 import 'checklist_screen.dart';
@@ -14,7 +17,6 @@ import 'profile_screen.dart';
 import 'appointments_screen.dart';
 import 'pregnancy_history_screen.dart';
 import 'pregnancy_report_screen.dart';
-import 'logging/quick_log_hub.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String userId;
@@ -159,6 +161,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: true,
         actions: [
+          // Wallet Button
+          IconButton(
+            icon: const Icon(Icons.wallet, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Wallet',
+          ),
+          // Voucher Button
+          IconButton(
+            icon: const Icon(Icons.card_giftcard, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VoucherScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Vouchers',
+          ),
           IconButton(
             icon: const Icon(Icons.history, color: Colors.black87),
             onPressed: () {
@@ -243,6 +271,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Streak Widget
+              StreakWidget(
+                userId: widget.userId,
+                category: 'pregnancy',
+                onStreakUpdated: () {
+                  setState(() {});
+                },
+              ),
+
+              const SizedBox(height: 24),
+
               // Main Pregnancy Card
               Container(
                 width: double.infinity,
@@ -319,14 +358,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildActionButton(
-                      'Quick Log',
-                      Icons.flash_on,
-                      _yellowAccent,
+                      'Daily Log',
+                      Icons.edit_note,
+                      _purpleAccent,
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              QuickLogHub(userId: widget.userId),
+                              DailyLogScreen(userId: widget.userId),
                         ),
                       ),
                     ),
@@ -343,44 +382,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           builder: (context) => WeeklyProgressScreen(
                             userId: widget.userId,
                             currentWeek: currentWeek,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActionButton(
-                      'Daily Log',
-                      Icons.edit_note,
-                      _purpleAccent,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              DailyLogScreen(userId: widget.userId),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildActionButton(
-                      'Nutrition',
-                      Icons.restaurant,
-                      _greenAccent,
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => NutritionScreen(
-                            userId: widget.userId,
-                            profile: _profile!,
                           ),
                         ),
                       ),

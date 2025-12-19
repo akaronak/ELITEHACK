@@ -20,10 +20,15 @@ if (!fs.existsSync(dbPath)) {
     menstruationLogs: [],
     cycleData: [],
     pregnancyProfiles: [],
+    pregnancyLogs: [],
     dailyLogs: [],
     menopauseLogs: [],
     fcmTokens: [],
     appointments: [],
+    userWallets: [],
+    streaks: [],
+    vouchers: [],
+    userVouchers: [],
   }, null, 2));
   console.log('Created database file:', dbPath);
 }
@@ -38,10 +43,15 @@ db.defaults({
   menstruationLogs: [],
   cycleData: [],
   pregnancyProfiles: [],
+  pregnancyLogs: [],
   dailyLogs: [],
   menopauseLogs: [],
   fcmTokens: [],
   appointments: [],
+  userWallets: [],
+  streaks: [],
+  vouchers: [],
+  userVouchers: [],
 }).write();
 
 console.log('Database initialized successfully');

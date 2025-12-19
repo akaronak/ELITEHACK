@@ -32,6 +32,10 @@ const emergencyRoutes = require('./routes/emergency.routes');
 const ocrRoutes = require('./routes/ocr.routes');
 const audioEmotionRoutes = require('./routes/audioEmotion.routes');
 const agoraConversationalAIRoutes = require('./routes/agoraConversationalAI.routes');
+const walletRoutes = require('./routes/wallet.routes');
+const streakRoutes = require('./routes/streak.routes');
+const voucherRoutes = require('./routes/voucher.routes');
+const pregnancyRoutes = require('./routes/pregnancy.routes');
 
 app.use('/api/user', userRoutes);
 app.use('/api/user', userProfileRoutes);
@@ -49,6 +53,10 @@ app.use('/api/emergency', emergencyRoutes);
 app.use('/api/ocr', ocrRoutes);
 app.use('/api/audio-emotion', audioEmotionRoutes);
 app.use('/api/agora-ai', agoraConversationalAIRoutes);
+app.use('/api/wallet', walletRoutes);
+app.use('/api/streak', streakRoutes);
+app.use('/api/voucher', voucherRoutes);
+app.use('/api/pregnancy', pregnancyRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

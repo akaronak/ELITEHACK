@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../providers/localization_provider.dart';
+import '../../widgets/streak_widget.dart';
+import '../../screens/wallet_screen.dart';
+import '../../screens/voucher_screen.dart';
 import 'menopause_ai_chat_screen.dart';
 import 'menopause_history_screen.dart';
 import 'menopause_report_screen.dart';
@@ -181,6 +184,32 @@ class _MenopauseHomeState extends State<MenopauseHome> {
         ),
         centerTitle: true,
         actions: [
+          // Wallet Button
+          IconButton(
+            icon: const Icon(Icons.wallet, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WalletScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Wallet',
+          ),
+          // Voucher Button
+          IconButton(
+            icon: const Icon(Icons.card_giftcard, color: Colors.black87),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => VoucherScreen(userId: widget.userId),
+                ),
+              );
+            },
+            tooltip: 'Vouchers',
+          ),
           IconButton(
             icon: const Icon(Icons.history, color: Colors.black87),
             onPressed: () {
@@ -256,6 +285,17 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Streak Widget
+                    StreakWidget(
+                      userId: widget.userId,
+                      category: 'menopause',
+                      onStreakUpdated: () {
+                        setState(() {});
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // Welcome Card
                     Container(
                       width: double.infinity,

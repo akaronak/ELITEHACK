@@ -9,6 +9,8 @@ import '../models/user_profile.dart';
 import '../services/api_service.dart';
 import '../providers/theme_provider.dart';
 import '../providers/localization_provider.dart';
+import 'wallet_screen.dart';
+import 'voucher_screen.dart';
 import 'auth/login_screen.dart';
 import 'education_chat_screen.dart';
 import 'agora_conversational_voice_agent.dart';
@@ -394,6 +396,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               );
                             },
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Wallet & Vouchers Section
+                      Consumer<LocalizationProvider>(
+                        builder: (context, localization, _) {
+                          return Text(
+                            'Rewards & Vouchers',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        WalletScreen(userId: widget.userId),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      _primaryPurple,
+                                      _primaryPurple.withValues(alpha: 0.7),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _primaryPurple.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.wallet,
+                                      size: 32,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'My Wallet',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'View points',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        VoucherScreen(userId: widget.userId),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      _greenAccent,
+                                      _greenAccent.withValues(alpha: 0.7),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _greenAccent.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Icon(
+                                      Icons.card_giftcard,
+                                      size: 32,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Vouchers',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Redeem rewards',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
