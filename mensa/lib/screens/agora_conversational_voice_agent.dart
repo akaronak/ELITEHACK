@@ -62,6 +62,9 @@ class _AgoraConversationalVoiceAgentState
       // Enable audio
       await _engine.enableAudio();
 
+      // Force audio to speaker (not earpiece) for better hearing
+      await _engine.setDefaultAudioRouteToSpeakerphone(true);
+
       // Setup event handlers
       _setupEventHandlers();
 
@@ -258,6 +261,9 @@ class _AgoraConversationalVoiceAgentState
 
           debugPrint('✅ Successfully joined channel');
 
+          // Ensure audio is routed to speaker
+          await _engine.setDefaultAudioRouteToSpeakerphone(true);
+
           // Enable audio volume indication to monitor agent speaking
           await _engine.enableAudioVolumeIndication(
             interval: 200,
@@ -412,7 +418,7 @@ class _AgoraConversationalVoiceAgentState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Voice Conversation with AI',
+              'Chat with Mena - Your Health Educator',
               style: TextStyle(
                 color: Colors.black87,
                 fontSize: 16,
@@ -446,7 +452,7 @@ class _AgoraConversationalVoiceAgentState
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Real-time voice conversation with AI. Educational information only. For medical advice, consult a healthcare provider.',
+                    'Chat with Mena for educational information about girls\' health including periods, PCOS, PCOD, endometriosis, and menopause. For medical advice, always consult a healthcare provider.',
                     style: TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                 ),
@@ -484,8 +490,8 @@ class _AgoraConversationalVoiceAgentState
                         const SizedBox(height: 16),
                         Text(
                           _isJoined
-                              ? 'Connected to AI Agent'
-                              : 'Ready to Connect',
+                              ? 'Connected to Mena'
+                              : 'Ready to Chat with Mena',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -525,7 +531,7 @@ class _AgoraConversationalVoiceAgentState
                                 ),
                                 const SizedBox(width: 8),
                                 const Text(
-                                  'AI is listening...',
+                                  'Mena is listening...',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.black87,
@@ -537,7 +543,7 @@ class _AgoraConversationalVoiceAgentState
                           ),
                           const SizedBox(height: 12),
                           const Text(
-                            'Speak naturally with the AI educator',
+                            'Ask Mena about your health questions',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
@@ -577,7 +583,7 @@ class _AgoraConversationalVoiceAgentState
                             ? _startVoiceConversation
                             : null,
                         icon: const Icon(Icons.phone),
-                        label: const Text('Start Voice Conversation'),
+                        label: const Text('Chat with Mena'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _greenAccent,
                           foregroundColor: Colors.white,

@@ -8,7 +8,7 @@ class AgoraConversationalAIService {
     this.baseUrl = 'https://api.agora.io/api/conversational-ai-agent/v2';
 
     this.llmApiKey = process.env.AGORA_LLM_API_KEY;
-    this.llmModel = process.env.AGORA_LLM_MODEL || 'gemini-2.0-flash';
+    this.llmModel = process.env.AGORA_LLM_MODEL || 'gemini-2.5-flash';
 
     this.ttsApiKey = process.env.AGORA_TTS_API_KEY;
     this.ttsModelId = process.env.AGORA_TTS_MODEL_ID || 'sonic-2';
@@ -57,13 +57,47 @@ class AgoraConversationalAIService {
       console.log(`🎤 ASR: Ares`);
 
       // Build Gemini URL with API key in query param (per Agora docs)
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.llmModel}:streamGenerateContent?alt=sse&key=${this.llmApiKey}`;
+      // Note: Using gemini-1.5-flash as fallback if 2.5-flash has quota issues
+      const modelToUse = this.llmModel || 'gemini-2.5-flash';
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?alt=sse&key=${this.llmApiKey}`;
 
       const defaultSystemMessages = [
         {
           parts: [
             {
-              text: `You are a friendly health educator specializing in periods, menopause, and pregnancy. Use simple, everyday words. Be friendly and encouraging. Never give medical advice - always suggest visiting a doctor for health concerns. Keep responses concise (2-3 sentences max). Stay on-topic about reproductive health.`,
+              text: `You are Mena, a friendly and knowledgeable health educator specializing in girls' and women's health. You provide educational information about:
+
+TOPICS YOU SPECIALIZE IN:
+- Menstrual cycles and period health
+- PCOS (Polycystic Ovary Syndrome) - symptoms, management, lifestyle tips
+- PCOD (Polycystic Ovarian Disease) - similar to PCOS, causes, treatments
+- Endometriosis - what it is, symptoms, coping strategies
+- Perimenopause - transition to menopause, symptoms, changes
+- Menopause - what to expect, managing symptoms
+- Pregnancy and reproductive health
+- General women's wellness
+
+COMMUNICATION STYLE:
+- Use simple, everyday language - avoid complex medical jargon
+- Be warm, friendly, and encouraging
+- Keep responses concise (2-3 sentences max for voice)
+- Use analogies and relatable examples
+- Be inclusive and respectful of all experiences
+
+IMPORTANT RULES:
+1. NEVER give medical diagnoses or treatment recommendations
+2. ALWAYS suggest consulting a doctor for health concerns
+3. Provide educational information only
+4. Stay on-topic about women's and girls' health
+5. If asked about other topics, politely redirect to health topics
+6. Be empathetic - many people feel embarrassed discussing these topics
+
+EXAMPLE RESPONSES:
+- "PCOS affects how your body produces hormones. Many people manage it with lifestyle changes and medical support. I'd recommend talking to your doctor about what's best for you."
+- "Endometriosis can cause painful periods. It's important to see a healthcare provider who can help you manage the pain and explore treatment options."
+- "Perimenopause is when your body transitions to menopause. Hot flashes and mood changes are common. Your doctor can help you manage these symptoms."
+
+Remember: You're here to educate and support, not to diagnose or treat. Always encourage professional medical consultation.`,
             },
           ],
           role: 'user',
@@ -106,7 +140,7 @@ class AgoraConversationalAIService {
             url: geminiUrl,
             system_messages: systemMessages || defaultSystemMessages,
             max_history: 32,
-            greeting_message: 'Hello! I am your health educator. How can I help you today?',
+            greeting_message: 'Hi! I\'m Mena, your girls\' health educator. I\'m here to answer questions about periods, PCOS, PCOD, endometriosis, menopause, and more. What would you like to know?',
             failure_message: 'Hold on a second.',
             params: {
               model: this.llmModel,
@@ -144,6 +178,13 @@ class AgoraConversationalAIService {
       if (error.response) {
         console.error('Response status:', error.response.status);
         console.error('Response data:', error.response.data);
+        
+        // Check for Gemini API quota/rate limit errors
+        if (error.response.status === 429 || error.response.status === 403) {
+          console.error('⚠️ GEMINI API QUOTA EXCEEDED or RATE LIMITED');
+          console.error('💡 Solution: Check your Google Cloud Console for quota limits');
+          console.error('💡 Your API key may need to be regenerated or quota increased');
+        }
       }
       throw error;
     }
@@ -276,11 +317,11 @@ class AgoraConversationalAIService {
     try {
       // Use pre-defined greetings to avoid Gemini API rate limits
       const greetings = [
-        'Hello! I\'m your health educator. Feel free to ask me anything about periods, menopause, or pregnancy.',
-        'Hi there! I\'m here to help you learn about reproductive health. What would you like to know?',
-        'Welcome! I\'m your AI health educator. Ask me anything about periods, menopause, or pregnancy.',
-        'Hello! I\'m excited to chat with you about health and wellness. What\'s on your mind?',
-        'Hi! I\'m here to provide friendly, educational information about your health. What can I help with?',
+        'Hi! I\'m Mena, your girls\' health educator. I can help with questions about periods, PCOS, PCOD, endometriosis, and menopause. What would you like to know?',
+        'Welcome! I\'m Mena. I\'m here to provide friendly information about women\'s health topics. Feel free to ask me anything!',
+        'Hello! I\'m Mena, your health companion. Whether you have questions about your cycle, PCOS, endometriosis, or perimenopause, I\'m here to help.',
+        'Hi there! I\'m Mena. I specialize in girls\' and women\'s health education. What health topic can I help you understand today?',
+        'Welcome to your health chat! I\'m Mena, and I\'m excited to help you learn about reproductive health and wellness. What\'s on your mind?',
       ];
 
       // Select a random greeting

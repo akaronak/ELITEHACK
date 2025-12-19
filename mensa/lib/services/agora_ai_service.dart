@@ -17,7 +17,7 @@ class AgoraAIService {
       apiKey: geminiApiKey,
       generationConfig: GenerationConfig(
         temperature: 0.7,
-        maxOutputTokens: 500,
+        maxOutputTokens: 300,
       ),
     );
   }
@@ -95,8 +95,8 @@ WHAT TO AVOID:
   Future<List<int>> generateTTS(
     String text, {
     required String cartesiaApiKey,
-    String voice = 'luna',
-    double speed = 1.0,
+    String voice = 'Arushi',
+    double speed = 0.5,
   }) async {
     try {
       final url = Uri.parse('https://api.cartesia.ai/tts/stream');
@@ -106,10 +106,9 @@ WHAT TO AVOID:
           'Content-Type': 'application/json',
         })
         ..body = jsonEncode({
-          'model': 'sonic-english',
+          'model': 'sonic-2',
           'input_text': text,
           'voice': voice,
-          'speed': speed,
         });
 
       final streamedResponse = await request.send();
