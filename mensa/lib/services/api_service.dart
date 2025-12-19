@@ -1432,4 +1432,23 @@ class ApiService {
       return null;
     }
   }
+
+  // Delete Account
+  Future<bool> deleteUserAccount(String userId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/user/$userId/account'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting user account: $e');
+      return false;
+    }
+  }
 }

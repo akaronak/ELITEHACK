@@ -179,4 +179,95 @@ router.get('/:userId/phone-number', (req, res) => {
   }
 });
 
+/**
+ * DELETE /:userId/account
+ * Permanently delete all user data from the server
+ * This will delete:
+ * - User profile
+ * - All menstruation logs
+ * - All pregnancy data
+ * - All menopause logs
+ * - All appointments
+ * - Wallet data
+ * - Streaks
+ * - User vouchers
+ * - FCM tokens
+ * - User record
+ */
+router.delete('/:userId/account', (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log(`🗑️ Deleting all data for user: ${userId}`);
+
+    // Delete from all collections
+    db.get('users')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('userProfiles')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('menstruationLogs')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('cycleData')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('pregnancyProfiles')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('pregnancyLogs')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('dailyLogs')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('menopauseLogs')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('fcmTokens')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('appointments')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('userWallets')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('streaks')
+      .remove({ user_id: userId })
+      .write();
+
+    db.get('userVouchers')
+      .remove({ user_id: userId })
+      .write();
+
+    console.log(`✅ All data deleted for user: ${userId}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'All user data has been permanently deleted',
+      user_id: userId,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 module.exports = router;
