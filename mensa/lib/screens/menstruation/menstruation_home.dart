@@ -8,11 +8,11 @@ import '../../screens/wallet_screen.dart';
 import '../../screens/voucher_screen.dart';
 import 'cycle_history_screen.dart';
 import 'menstruation_ai_chat_screen.dart';
-import 'ranting_ai_screen.dart';
 import 'cycle_setup_screen.dart';
 import 'pcos_log_screen.dart';
 import 'menstruation_report_screen.dart';
 import '../profile_screen.dart';
+import '../agora_conversational_voice_agent.dart';
 
 class MenstruationHome extends StatefulWidget {
   final String userId;
@@ -618,9 +618,13 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => RantingAIScreen(
-                                            userId: widget.userId,
-                                          ),
+                                          builder: (context) =>
+                                              AgoraConversationalVoiceAgent(
+                                                userId: widget.userId,
+                                                agoraAppId:
+                                                    'bb1ca613e3b94aa7af3eec189d172e99',
+                                                mode: 'ranting',
+                                              ),
                                         ),
                                       );
                                     },

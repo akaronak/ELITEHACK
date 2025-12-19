@@ -6,11 +6,13 @@ import '../services/api_service.dart';
 class AgoraConversationalVoiceAgent extends StatefulWidget {
   final String userId;
   final String agoraAppId;
+  final String mode;
 
   const AgoraConversationalVoiceAgent({
     super.key,
     required this.userId,
     required this.agoraAppId,
+    this.mode = 'education',
   });
 
   @override
@@ -207,6 +209,7 @@ class _AgoraConversationalVoiceAgentState
       final agentResponse = await _apiService.startAgoraAgent(
         channelName: channelName,
         agentName: 'mensa_agent_${DateTime.now().millisecondsSinceEpoch}',
+        mode: widget.mode,
       );
 
       if (agentResponse == null || !agentResponse['success']) {
@@ -354,7 +357,7 @@ class _AgoraConversationalVoiceAgentState
   Future<void> _fetchAndDisplayGreeting() async {
     try {
       debugPrint('🎤 Fetching greeting from AI...');
-      final greeting = await _apiService.getAgoraGreeting();
+      final greeting = await _apiService.getAgoraGreeting(mode: widget.mode);
 
       if (greeting != null && mounted) {
         debugPrint('✅ Greeting received: $greeting');
@@ -417,9 +420,11 @@ class _AgoraConversationalVoiceAgentState
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Chat with Mena - Your Health Educator',
-              style: TextStyle(
+            Text(
+              widget.mode == 'ranting'
+                  ? 'Chat with Mena - Your Emotional Support'
+                  : 'Chat with Mena - Your Health Educator',
+              style: const TextStyle(
                 color: Colors.black87,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -446,14 +451,16 @@ class _AgoraConversationalVoiceAgentState
               color: const Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline, size: 20, color: Colors.blue),
-                SizedBox(width: 12),
+                const Icon(Icons.info_outline, size: 20, color: Colors.blue),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Chat with Mena for educational information about girls\' health including periods, PCOS, PCOD, endometriosis, and menopause. For medical advice, always consult a healthcare provider.',
-                    style: TextStyle(fontSize: 12, color: Colors.black87),
+                    widget.mode == 'ranting'
+                        ? 'Mena is here to listen and provide emotional support. Share your feelings, concerns, and experiences. For medical advice, always consult a healthcare provider.'
+                        : 'Chat with Mena for educational information about girls\' health including periods, PCOS, PCOD, endometriosis, and menopause. For medical advice, always consult a healthcare provider.',
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                   ),
                 ),
               ],
@@ -490,7 +497,11 @@ class _AgoraConversationalVoiceAgentState
                         const SizedBox(height: 16),
                         Text(
                           _isJoined
-                              ? 'Connected to Mena'
+                              ? widget.mode == 'ranting'
+                                    ? 'Connected to Mena'
+                                    : 'Connected to Mena'
+                              : widget.mode == 'ranting'
+                              ? 'Ready to Share Your Feelings'
                               : 'Ready to Chat with Mena',
                           style: const TextStyle(
                             fontSize: 20,
@@ -542,9 +553,11 @@ class _AgoraConversationalVoiceAgentState
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Ask Mena about your health questions',
-                            style: TextStyle(
+                          Text(
+                            widget.mode == 'ranting'
+                                ? 'Share your feelings and concerns - Mena is here to listen'
+                                : 'Ask Mena about your health questions',
+                            style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
                               fontStyle: FontStyle.italic,
@@ -583,7 +596,11 @@ class _AgoraConversationalVoiceAgentState
                             ? _startVoiceConversation
                             : null,
                         icon: const Icon(Icons.phone),
-                        label: const Text('Chat with Mena'),
+                        label: Text(
+                          widget.mode == 'ranting'
+                              ? 'Start Talking to Mena'
+                              : 'Chat with Mena',
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _greenAccent,
                           foregroundColor: Colors.white,

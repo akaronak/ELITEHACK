@@ -19,6 +19,7 @@ router.post('/start-agent', async (req, res) => {
     const {
       channelName,
       agentName,
+      mode = 'education',
       systemMessages = null,
     } = req.body;
 
@@ -41,6 +42,7 @@ router.post('/start-agent', async (req, res) => {
       agentName,
       ['*'], // Subscribe to all users
       systemMessages,
+      mode,
     );
 
     res.json(result);
@@ -184,10 +186,12 @@ router.get('/status', (req, res) => {
 /**
  * GET /api/agora-ai/greeting
  * Generate a greeting message from the AI
+ * Query params: mode (optional) - 'education' or 'ranting'
  */
 router.get('/greeting', async (req, res) => {
   try {
-    const greeting = await agoraService.generateGreeting();
+    const { mode = 'education' } = req.query;
+    const greeting = await agoraService.generateGreeting(mode);
     res.json({
       success: true,
       greeting: greeting,

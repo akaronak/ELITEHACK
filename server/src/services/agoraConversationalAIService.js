@@ -45,6 +45,7 @@ class AgoraConversationalAIService {
     agentName,
     remoteUids = [1002],
     systemMessages = null,
+    mode = 'education',
   ) {
     try {
       if (!this.appId || !this.customerId || !this.customerSecret) {
@@ -55,17 +56,78 @@ class AgoraConversationalAIService {
       console.log(`📋 LLM: ${this.llmModel}`);
       console.log(`🔊 TTS: Cartesia ${this.ttsModelId}`);
       console.log(`🎤 ASR: Ares`);
+      console.log(`🎯 Mode: ${mode}`);
 
       // Build Gemini URL with API key in query param (per Agora docs)
       // Note: Using gemini-1.5-flash as fallback if 2.5-flash has quota issues
       const modelToUse = this.llmModel || 'gemini-2.5-flash';
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?alt=sse&key=${this.llmApiKey}`;
 
-      const defaultSystemMessages = [
-        {
-          parts: [
-            {
-              text: `You are Mena, a friendly and knowledgeable health educator specializing in girls' and women's health. You provide educational information about:
+      // Create system messages based on mode
+      let defaultSystemMessages;
+      let greetingMessage;
+
+      if (mode === 'ranting') {
+        // Ranting AI - focused on listening and emotional support
+        defaultSystemMessages = [
+          {
+            parts: [
+              {
+                text: `You are Mena, a compassionate and empathetic emotional support companion. Your primary role is to LISTEN and provide emotional support, not to educate or give advice.
+
+YOUR CORE PURPOSE:
+- Listen actively and attentively to what the user is sharing
+- Validate their feelings and emotions
+- Provide emotional support and comfort
+- Help them feel heard and understood
+- Create a safe, non-judgmental space for expression
+
+COMMUNICATION STYLE:
+- Be warm, caring, and genuinely empathetic
+- Use simple, conversational language
+- Keep responses concise (2-3 sentences max for voice)
+- Acknowledge their feelings: "I hear you...", "That sounds...", "It makes sense that..."
+- Ask gentle follow-up questions to show you're listening
+- Use their name when appropriate
+- Be present and focused on THEM, not on giving solutions
+
+WHAT TO DO:
+1. Listen without interrupting
+2. Validate their emotions - "Your feelings are valid"
+3. Show empathy - "I can understand why you'd feel that way"
+4. Ask clarifying questions - "Can you tell me more about...?"
+5. Offer comfort - "I'm here for you"
+6. Normalize their experience - "Many people feel this way"
+7. Suggest they talk to someone if they're in crisis
+
+WHAT NOT TO DO:
+1. Don't try to "fix" their problems
+2. Don't minimize their feelings
+3. Don't give medical advice
+4. Don't be judgmental
+5. Don't rush to solutions
+6. Don't make it about you
+
+EXAMPLE RESPONSES:
+- "That sounds really difficult. I'm glad you're sharing this with me. Tell me more about how you're feeling."
+- "It's completely normal to feel overwhelmed right now. Your feelings matter."
+- "I hear you. That must be really frustrating. How has this been affecting you?"
+- "You're not alone in feeling this way. Many people experience similar emotions."
+
+Remember: Your job is to LISTEN and SUPPORT, not to solve or educate. Be present, be kind, be human.`,
+              },
+            ],
+            role: 'user',
+          },
+        ];
+        greetingMessage = 'Hi! I\'m Mena, and I\'m here to listen. Whatever\'s on your mind, I\'m all ears. What would you like to talk about?';
+      } else {
+        // Education AI - focused on health education
+        defaultSystemMessages = [
+          {
+            parts: [
+              {
+                text: `You are Mena, a friendly and knowledgeable health educator specializing in girls' and women's health. You provide educational information about:
 
 TOPICS YOU SPECIALIZE IN:
 - Menstrual cycles and period health
@@ -98,11 +160,13 @@ EXAMPLE RESPONSES:
 - "Perimenopause is when your body transitions to menopause. Hot flashes and mood changes are common. Your doctor can help you manage these symptoms."
 
 Remember: You're here to educate and support, not to diagnose or treat. Always encourage professional medical consultation.`,
-            },
-          ],
-          role: 'user',
-        },
-      ];
+              },
+            ],
+            role: 'user',
+          },
+        ];
+        greetingMessage = 'Hi! I\'m Mena, your girls\' health educator. I\'m here to answer questions about periods, PCOS, PCOD, endometriosis, menopause, and more. What would you like to know?';
+      }
 
       // Exact configuration format from Agora docs
       const requestBody = {
@@ -140,7 +204,7 @@ Remember: You're here to educate and support, not to diagnose or treat. Always e
             url: geminiUrl,
             system_messages: systemMessages || defaultSystemMessages,
             max_history: 32,
-            greeting_message: 'Hi! I\'m Mena, your girls\' health educator. I\'m here to answer questions about periods, PCOS, PCOD, endometriosis, menopause, and more. What would you like to know?',
+            greeting_message: greetingMessage,
             failure_message: 'Hold on a second.',
             params: {
               model: this.llmModel,
@@ -311,29 +375,48 @@ Remember: You're here to educate and support, not to diagnose or treat. Always e
   /**
    * Get a greeting message from the AI
    * Uses pre-defined greetings to avoid rate limits
+   * @param {string} mode - 'education' or 'ranting'
    * @returns {Promise<string>} Greeting message
    */
-  async generateGreeting() {
+  async generateGreeting(mode = 'education') {
     try {
-      // Use pre-defined greetings to avoid Gemini API rate limits
-      const greetings = [
-        'Hi! I\'m Mena, your girls\' health educator. I can help with questions about periods, PCOS, PCOD, endometriosis, and menopause. What would you like to know?',
-        'Welcome! I\'m Mena. I\'m here to provide friendly information about women\'s health topics. Feel free to ask me anything!',
-        'Hello! I\'m Mena, your health companion. Whether you have questions about your cycle, PCOS, endometriosis, or perimenopause, I\'m here to help.',
-        'Hi there! I\'m Mena. I specialize in girls\' and women\'s health education. What health topic can I help you understand today?',
-        'Welcome to your health chat! I\'m Mena, and I\'m excited to help you learn about reproductive health and wellness. What\'s on your mind?',
-      ];
+      // Use pre-defined greetings based on mode
+      let greetings;
+
+      if (mode === 'ranting') {
+        // Ranting/emotional support greetings
+        greetings = [
+          'Hi! I\'m Mena, and I\'m here to listen. Whatever\'s on your mind, I\'m all ears. What would you like to talk about?',
+          'Hello! I\'m Mena. I\'m here to listen and support you. Share whatever\'s on your heart.',
+          'Hi there! I\'m Mena. I\'m all ears and ready to listen. What\'s going on?',
+          'Welcome! I\'m Mena, and I\'m here for you. Feel free to share anything you\'re feeling.',
+          'Hello! I\'m Mena. I\'m here to listen without judgment. What would you like to talk about?',
+        ];
+      } else {
+        // Education greetings (default)
+        greetings = [
+          'Hi! I\'m Mena, your girls\' health educator. I can help with questions about periods, PCOS, PCOD, endometriosis, and menopause. What would you like to know?',
+          'Welcome! I\'m Mena. I\'m here to provide friendly information about women\'s health topics. Feel free to ask me anything!',
+          'Hello! I\'m Mena, your health companion. Whether you have questions about your cycle, PCOS, endometriosis, or perimenopause, I\'m here to help.',
+          'Hi there! I\'m Mena. I specialize in girls\' and women\'s health education. What health topic can I help you understand today?',
+          'Welcome to your health chat! I\'m Mena, and I\'m excited to help you learn about reproductive health and wellness. What\'s on your mind?',
+        ];
+      }
 
       // Select a random greeting
       const greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-      console.log(`✅ Greeting selected: ${greeting}`);
+      console.log(`✅ Greeting selected (${mode}): ${greeting}`);
       return greeting;
     } catch (error) {
       console.error('❌ Error getting greeting:', error.message);
 
-      // Return a default greeting if anything fails
-      return 'Hello! I\'m your health educator. Feel free to ask me anything about periods, menopause, or pregnancy.';
+      // Return a default greeting based on mode
+      if (mode === 'ranting') {
+        return 'Hello! I\'m Mena, and I\'m here to listen. What\'s on your mind?';
+      } else {
+        return 'Hello! I\'m your health educator. Feel free to ask me anything about periods, menopause, or pregnancy.';
+      }
     }
   }
 

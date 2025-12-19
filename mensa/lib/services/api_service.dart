@@ -836,12 +836,17 @@ class ApiService {
   Future<Map<String, dynamic>?> startAgoraAgent({
     required String channelName,
     required String agentName,
+    String mode = 'education',
   }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/agora-ai/start-agent'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'channelName': channelName, 'agentName': agentName}),
+        body: jsonEncode({
+          'channelName': channelName,
+          'agentName': agentName,
+          'mode': mode,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -906,9 +911,11 @@ class ApiService {
     }
   }
 
-  Future<String?> getAgoraGreeting() async {
+  Future<String?> getAgoraGreeting({String mode = 'education'}) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/agora-ai/greeting'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/agora-ai/greeting?mode=$mode'),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
