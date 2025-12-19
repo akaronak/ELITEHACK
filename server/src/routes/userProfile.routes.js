@@ -31,6 +31,33 @@ router.post('/:userId/profile', (req, res) => {
         .write();
     }
 
+    // Also update or create user record with phone number
+    if (req.body.phone_number) {
+      const existingUser = db.get('users')
+        .find({ user_id: userId })
+        .value();
+
+      const userData = {
+        user_id: userId,
+        name: req.body.name || 'User',
+        phone_number: req.body.phone_number,
+        fcm_token: req.body.fcm_token,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (existingUser) {
+        db.get('users')
+          .find({ user_id: userId })
+          .assign(userData)
+          .write();
+      } else {
+        userData.created_at = new Date().toISOString();
+        db.get('users')
+          .push(userData)
+          .write();
+      }
+    }
+
     res.status(200).json(profile);
   } catch (error) {
     console.error('Error saving user profile:', error);
@@ -52,6 +79,102 @@ router.get('/:userId/profile', (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /:userId/phone-number
+ * Update user's phone number for WhatsApp notifications
+ * Body: {
+ *   phone_number: string (e.g., "+1234567890")
+ * }
+ */
+router.post('/:userId/phone-number', (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { phone_number } = req.body;
+
+    if (!phone_number) {
+      return res.status(400).json({ error: 'phone_number is required' });
+    }
+
+    // Validate phone number format (basic validation)
+    if (!/^\+\d{1,15}$/.test(phone_number)) {
+      return res.status(400).json({
+        error: 'Invalid phone number format. Use format: +1234567890',
+      });
+    }
+
+    // Update or create user record
+    const existingUser = db.get('users')
+      .find({ user_id: userId })
+      .value();
+
+    const userData = {
+      user_id: userId,
+      phone_number,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (existingUser) {
+      db.get('users')
+        .find({ user_id: userId })
+        .assign(userData)
+        .write();
+    } else {
+      userData.created_at = new Date().toISOString();
+      db.get('users')
+        .push(userData)
+        .write();
+    }
+
+    // Also update userProfile if it exists
+    const profile = db.get('userProfiles')
+      .find({ user_id: userId })
+      .value();
+
+    if (profile) {
+      db.get('userProfiles')
+        .find({ user_id: userId })
+        .assign({ phone_number, updated_at: new Date().toISOString() })
+        .write();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Phone number updated successfully',
+      user_id: userId,
+      phone_number,
+    });
+  } catch (error) {
+    console.error('Error updating phone number:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /:userId/phone-number
+ * Get user's phone number
+ */
+router.get('/:userId/phone-number', (req, res) => {
+  try {
+    const user = db.get('users')
+      .find({ user_id: req.params.userId })
+      .value();
+
+    if (!user || !user.phone_number) {
+      return res.status(404).json({
+        error: 'Phone number not found for this user',
+      });
+    }
+
+    res.json({
+      user_id: req.params.userId,
+      phone_number: user.phone_number,
+    });
+  } catch (error) {
+    console.error('Error fetching phone number:', error);
     res.status(500).json({ error: error.message });
   }
 });

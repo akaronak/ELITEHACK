@@ -16,6 +16,7 @@ const dbPath = path.join(dataDir, 'db.json');
 // Create empty db.json if it doesn't exist
 if (!fs.existsSync(dbPath)) {
   fs.writeFileSync(dbPath, JSON.stringify({
+    users: [],
     userProfiles: [],
     menstruationLogs: [],
     cycleData: [],
@@ -39,6 +40,7 @@ const db = low(adapter);
 
 // Initialize database with default structure (if empty)
 db.defaults({
+  users: [],
   userProfiles: [],
   menstruationLogs: [],
   cycleData: [],

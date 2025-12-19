@@ -1178,4 +1178,258 @@ class ApiService {
       return null;
     }
   }
+
+  // Notification APIs
+  Future<Map<String, dynamic>?> sendNotification({
+    required String userId,
+    String? phoneNumber,
+    String? fcmToken,
+    required String title,
+    required String body,
+    Map<String, dynamic>? data,
+    bool sendFCM = true,
+    bool sendWhatsApp = true,
+    bool sendLocal = true,
+  }) async {
+    try {
+      debugPrint('📨 Sending notification:');
+      debugPrint('  userId: $userId');
+      debugPrint('  phoneNumber: $phoneNumber');
+      debugPrint('  title: $title');
+      debugPrint('  body: $body');
+      debugPrint('  sendWhatsApp: $sendWhatsApp');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'phoneNumber': phoneNumber,
+          'fcmToken': fcmToken,
+          'title': title,
+          'body': body,
+          'data': data ?? {},
+          'sendFCM': sendFCM,
+          'sendWhatsApp': sendWhatsApp,
+          'sendLocal': sendLocal,
+        }),
+      );
+
+      debugPrint('📡 Response status: ${response.statusCode}');
+      debugPrint('📡 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        debugPrint('✅ Notification sent successfully');
+        return jsonDecode(response.body);
+      }
+      debugPrint('❌ Notification failed with status: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      debugPrint('❌ Error sending notification: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendStreakReminder({
+    required String userId,
+    required String tracker,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/streak-reminder'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId, 'tracker': tracker}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending streak reminder: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendPeriodReminder({
+    required String userId,
+    required int daysUntil,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/period-reminder'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId, 'daysUntil': daysUntil}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending period reminder: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendHealthTip({
+    required String userId,
+    required String tip,
+    String category = 'wellness',
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/health-tip'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId, 'tip': tip, 'category': category}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending health tip: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getNotificationStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications/status'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting notification status: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendMotivationMessage({
+    required String userId,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/motivation'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending motivation message: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> sendDailyCheckInReminder({
+    required String userId,
+    required String tracker,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/daily-checkin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId, 'tracker': tracker}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error sending daily check-in reminder: $e');
+      return null;
+    }
+  }
+
+  // Phone Number Management for WhatsApp Notifications
+  Future<bool> updatePhoneNumber(String userId, String phoneNumber) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/user/$userId/phone-number'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone_number': phoneNumber}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error updating phone number: $e');
+      return false;
+    }
+  }
+
+  Future<String?> getPhoneNumber(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/user/$userId/phone-number'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['phone_number'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching phone number: $e');
+      return null;
+    }
+  }
+
+  // Generate personalized notification using Gemini AI
+  Future<Map<String, dynamic>?> generatePersonalizedNotification({
+    required String userId,
+    required String tracker,
+    required int cycleDay,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/generate-personalized'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': userId,
+          'tracker': tracker,
+          'cycleDay': cycleDay,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error generating personalized notification: $e');
+      return null;
+    }
+  }
+
+  // Generate cute period reminder using Gemini AI
+  Future<Map<String, dynamic>?> generatePeriodReminder({
+    required String userId,
+    required int daysUntil,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/period-reminder-ai'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId, 'daysUntil': daysUntil}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error generating period reminder: $e');
+      return null;
+    }
+  }
 }

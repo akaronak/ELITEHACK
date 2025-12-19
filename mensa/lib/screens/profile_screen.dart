@@ -40,6 +40,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       TextEditingController();
   final TextEditingController _emergencyEmailController =
       TextEditingController();
+  final TextEditingController _whatsappPhoneController =
+      TextEditingController();
 
   String _bloodType = 'Unknown';
   final List<String> _medicalConditions = [];
@@ -112,6 +114,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (profileData != null && mounted) {
         final profile = UserProfile.fromJson(profileData);
+
+        // Load phone number
+        final phoneNumber = await _apiService.getPhoneNumber(widget.userId);
+
         setState(() {
           _profile = profile;
           _nameController.text = profile.name;
@@ -125,6 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _emergencyContactController.text = profile.emergencyContact ?? '';
           _emergencyPhoneController.text = profile.emergencyPhone ?? '';
           _emergencyEmailController.text = profile.emergencyEmail ?? '';
+          _whatsappPhoneController.text = phoneNumber ?? '';
           _trackerType = profile.trackerType;
           _isLoading = false;
         });
@@ -168,6 +175,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       final success = await _apiService.saveUserProfile(profile);
+
+      // Save phone number if provided
+      if (_whatsappPhoneController.text.trim().isNotEmpty) {
+        await _apiService.updatePhoneNumber(
+          widget.userId,
+          _whatsappPhoneController.text.trim(),
+        );
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1072,6 +1087,87 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ),
                               ),
                             ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // WhatsApp Notifications
+                      const Text(
+                        'WhatsApp Notifications',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _buildInfoCard(
+                        icon: Icons.message,
+                        iconColor: Colors.green,
+                        children: [
+                          const Text(
+                            'Phone Number for WhatsApp',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Add your phone number to receive health reminders and personalized notifications via WhatsApp.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _whatsappPhoneController,
+                            label: 'Phone Number',
+                            icon: Icons.phone,
+                            keyboardType: TextInputType.phone,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                if (!value.startsWith('+')) {
+                                  return 'Phone must start with +';
+                                }
+                                if (value.length < 10 || value.length > 16) {
+                                  return 'Invalid phone format';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Colors.green,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Format: +[country code][number]\nExample: +1234567890',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
 
@@ -2279,6 +2375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _emergencyContactController.dispose();
     _emergencyPhoneController.dispose();
     _emergencyEmailController.dispose();
+    _whatsappPhoneController.dispose();
     super.dispose();
   }
 }

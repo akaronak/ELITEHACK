@@ -221,6 +221,144 @@ class _MenstruationHomeState extends State<MenstruationHome> {
     return '$daysUntil days';
   }
 
+  Future<void> _sendPersonalizedNotification() async {
+    try {
+      final apiService = ApiService();
+
+      // Get user's recent logs to personalize the message
+      final logs = await apiService.getMenstruationLogs(widget.userId);
+
+      String title = '💜 Health Reminder';
+      String body = 'Keep tracking your health!';
+
+      if (logs.isNotEmpty) {
+        // Call backend to generate personalized notification using Gemini
+        final response = await apiService.generatePersonalizedNotification(
+          userId: widget.userId,
+          tracker: 'menstruation',
+          cycleDay: _currentCycleDay,
+        );
+
+        if (response != null) {
+          title = response['title'] ?? title;
+          body = response['body'] ?? body;
+        }
+      }
+
+      // Get phone number for WhatsApp
+      final phoneNumber = await apiService.getPhoneNumber(widget.userId);
+
+      // Send via API to get WhatsApp notification if phone is saved
+      await apiService.sendNotification(
+        userId: widget.userId,
+        phoneNumber: phoneNumber,
+        title: title,
+        body: body,
+        sendWhatsApp: true,
+        sendLocal: true,
+      );
+
+      // Also show local notification immediately
+      final notificationService = NotificationService();
+      await notificationService.showImmediateNotification(
+        title: title,
+        body: body,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              '✅ Personalized notification sent!\nCheck WhatsApp if phone number is saved.',
+            ),
+            backgroundColor: _greenMood,
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error sending personalized notification: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error sending notification'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendPeriodReminder() async {
+    try {
+      final apiService = ApiService();
+
+      // Calculate days until next period
+      final daysUntil =
+          int.tryParse(
+            _getDaysUntilNextPeriod().replaceAll(RegExp(r'[^0-9]'), ''),
+          ) ??
+          0;
+
+      // Call backend to generate cute period reminder using Gemini
+      final response = await apiService.generatePeriodReminder(
+        userId: widget.userId,
+        daysUntil: daysUntil,
+      );
+
+      if (response != null && response['reminder'] != null) {
+        final reminder = response['reminder'];
+        final title = reminder['title'] ?? '🌸 Period Reminder';
+        final body = reminder['body'] ?? 'Your period is coming soon!';
+
+        // Show local notification
+        final notificationService = NotificationService();
+        await notificationService.showImmediateNotification(
+          title: title,
+          body: body,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                '💕 Cute period reminder sent!\nCheck WhatsApp if phone number is saved.',
+              ),
+              backgroundColor: _primaryPink,
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error sending period reminder: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Error sending period reminder'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_needsSetup && !_isLoading) {
@@ -460,6 +598,24 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                               ),
                             );
                           }
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.favorite),
+                        title: const Text('Personalized'),
+                        subtitle: const Text('Based on your health data'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await _sendPersonalizedNotification();
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.favorite_border),
+                        title: const Text('Period Reminder'),
+                        subtitle: const Text('Cute & loving message'),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await _sendPeriodReminder();
                         },
                       ),
                     ],
