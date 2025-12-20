@@ -20,34 +20,74 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  bool firebaseInitialized = false;
 
-  // Register background message handler ONCE at app startup
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  try {
+    // Initialize Firebase
+    debugPrint('🔥 Initializing Firebase...');
+    await Firebase.initializeApp();
+    firebaseInitialized = true;
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization error: $e');
+  }
 
-  // Initialize notification service
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+  try {
+    // Register background message handler ONCE at app startup
+    if (firebaseInitialized) {
+      debugPrint('📨 Registering background message handler...');
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+      debugPrint('✅ Background message handler registered');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Background message handler error: $e');
+  }
 
-  // Check if user is logged in and onboarding completed
-  final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-  final userId = prefs.getString('user_id');
-  final savedLanguage = prefs.getString('app_language') ?? 'en';
-  final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
+  try {
+    // Initialize notification service
+    if (firebaseInitialized) {
+      debugPrint('🔔 Initializing Notification Service...');
+      final notificationService = NotificationService();
+      await notificationService.initialize();
+      debugPrint('✅ Notification Service initialized');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Notification Service initialization warning: $e');
+  }
 
-  debugPrint('🔐 Login status: $isLoggedIn, User ID: $userId');
-  debugPrint('📱 Onboarding completed: $onboardingCompleted');
+  try {
+    // Check if user is logged in and onboarding completed
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+    final userId = prefs.getString('user_id');
+    final savedLanguage = prefs.getString('app_language') ?? 'en';
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
 
-  runApp(
-    MensaApp(
-      isLoggedIn: isLoggedIn,
-      userId: userId,
-      initialLanguage: savedLanguage,
-      onboardingCompleted: onboardingCompleted,
-    ),
-  );
+    debugPrint('🔐 Login status: $isLoggedIn, User ID: $userId');
+    debugPrint('📱 Onboarding completed: $onboardingCompleted');
+
+    runApp(
+      MensaApp(
+        isLoggedIn: isLoggedIn,
+        userId: userId,
+        initialLanguage: savedLanguage,
+        onboardingCompleted: onboardingCompleted,
+      ),
+    );
+  } catch (e) {
+    debugPrint('❌ App initialization error: $e');
+    // Run app with default values if initialization fails
+    runApp(
+      const MensaApp(
+        isLoggedIn: false,
+        userId: null,
+        initialLanguage: 'en',
+        onboardingCompleted: false,
+      ),
+    );
+  }
 }
 
 class MensaApp extends StatelessWidget {

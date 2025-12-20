@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -9,71 +10,81 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    // Initialize timezone
-    tz.initializeTimeZones();
+    try {
+      // Initialize timezone
+      tz.initializeTimeZones();
 
-    // Initialize local notifications
-    await _initializeLocalNotifications();
+      // Initialize local notifications
+      await _initializeLocalNotifications();
 
-    // Request permission for iOS and Android 13+
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
+      // Request permission for iOS and Android 13+
+      NotificationSettings settings = await _firebaseMessaging
+          .requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+            provisional: false,
+          );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('✅ User granted notification permission');
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {
-      print('⚠️ User granted provisional notification permission');
-    } else {
-      print('❌ User declined or has not accepted notification permission');
-    }
-
-    // Get FCM token
-    String? token = await _firebaseMessaging.getToken();
-    print('📱 FCM Token: $token');
-    print('📋 Copy this token to test notifications from Firebase Console');
-
-    // Listen for token refresh
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {
-      print('🔄 FCM Token refreshed: $newToken');
-    });
-
-    // Handle foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('� G ot a message in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('📬 Notification: ${message.notification!.title}');
-        print('📝 Body: ${message.notification!.body}');
-
-        // Display local notification when app is in foreground
-        _showLocalNotification(
-          title: message.notification!.title ?? 'Mensa',
-          body: message.notification!.body ?? '',
-          payload: message.data.toString(),
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        debugPrint('✅ User granted notification permission');
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
+        debugPrint('⚠️ User granted provisional notification permission');
+      } else {
+        debugPrint(
+          '❌ User declined or has not accepted notification permission',
         );
       }
-    });
 
-    // Handle notification taps when app is in background
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('🔔 Notification tapped! Opening app...');
-      print('Message data: ${message.data}');
-      _handleNotificationTap(message.data);
-    });
+      // Get FCM token
+      String? token = await _firebaseMessaging.getToken();
+      debugPrint('📱 FCM Token: $token');
+      debugPrint(
+        '📋 Copy this token to test notifications from Firebase Console',
+      );
 
-    // Check if app was opened from a terminated state via notification
-    RemoteMessage? initialMessage = await _firebaseMessaging
-        .getInitialMessage();
-    if (initialMessage != null) {
-      print('🚀 App opened from terminated state via notification');
-      print('Message data: ${initialMessage.data}');
-      _handleNotificationTap(initialMessage.data);
+      // Listen for token refresh
+      _firebaseMessaging.onTokenRefresh.listen((newToken) {
+        debugPrint('🔄 FCM Token refreshed: $newToken');
+      });
+
+      // Handle foreground messages
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('📬 Got a message in the foreground!');
+        debugPrint('Message data: ${message.data}');
+
+        if (message.notification != null) {
+          debugPrint('📬 Notification: ${message.notification!.title}');
+          debugPrint('📝 Body: ${message.notification!.body}');
+
+          // Display local notification when app is in foreground
+          _showLocalNotification(
+            title: message.notification!.title ?? 'Mensa',
+            body: message.notification!.body ?? '',
+            payload: message.data.toString(),
+          );
+        }
+      });
+
+      // Handle notification taps when app is in background
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('🔔 Notification tapped! Opening app...');
+        debugPrint('Message data: ${message.data}');
+        _handleNotificationTap(message.data);
+      });
+
+      // Check if app was opened from a terminated state via notification
+      RemoteMessage? initialMessage = await _firebaseMessaging
+          .getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint('🚀 App opened from terminated state via notification');
+        debugPrint('Message data: ${initialMessage.data}');
+        _handleNotificationTap(initialMessage.data);
+      }
+    } catch (e) {
+      debugPrint('❌ Error initializing notification service: $e');
+      rethrow;
     }
   }
 
@@ -96,7 +107,7 @@ class NotificationService {
     await _localNotifications.initialize(
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        print('Notification tapped: ${response.payload}');
+        debugPrint('Notification tapped: ${response.payload}');
         if (response.payload != null) {
           _handleNotificationTap({'payload': response.payload});
         }
@@ -158,7 +169,7 @@ class NotificationService {
 
   void _handleNotificationTap(Map<String, dynamic> data) {
     // Handle navigation based on notification data
-    print('Handling notification tap with data: $data');
+    debugPrint('Handling notification tap with data: $data');
     // TODO: Implement navigation logic based on notification type
   }
 
@@ -169,13 +180,13 @@ class NotificationService {
   // Subscribe to topic for group notifications
   Future<void> subscribeToTopic(String topic) async {
     await _firebaseMessaging.subscribeToTopic(topic);
-    print('✅ Subscribed to topic: $topic');
+    debugPrint('✅ Subscribed to topic: $topic');
   }
 
   // Unsubscribe from topic
   Future<void> unsubscribeFromTopic(String topic) async {
     await _firebaseMessaging.unsubscribeFromTopic(topic);
-    print('❌ Unsubscribed from topic: $topic');
+    debugPrint('❌ Unsubscribed from topic: $topic');
   }
 
   // Schedule a local notification
@@ -211,7 +222,7 @@ class NotificationService {
             UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
-      print('Error scheduling notification: $e');
+      debugPrint('Error scheduling notification: $e');
       // Fallback: show immediate notification instead
       await _showLocalNotification(title: title, body: body);
     }
