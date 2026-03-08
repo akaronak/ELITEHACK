@@ -778,7 +778,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                               AgoraConversationalVoiceAgent(
                                                 userId: widget.userId,
                                                 agoraAppId:
-                                                    'bb1ca613e3b94aa7af3eec189d172e99',
+                                                    '905308d34ad041ada928d4309b026590',
                                                 mode: 'ranting',
                                               ),
                                         ),
@@ -1082,7 +1082,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? _greenMood
-                                        : _greenMood.withOpacity(0.2),
+                                        : _greenMood.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
@@ -1209,7 +1209,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? _purpleMood
-                                        : _purpleMood.withOpacity(0.2),
+                                        : _purpleMood.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -1308,7 +1308,7 @@ class _MenstruationHomeState extends State<MenstruationHome> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

@@ -888,7 +888,7 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? _greenMood
-                                        : _greenMood.withOpacity(0.2),
+                                        : _greenMood.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -981,7 +981,7 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? _darkPurple
-                                        : _primaryPurple.withOpacity(0.2),
+                                        : _primaryPurple.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -1021,7 +1021,7 @@ class _MenopauseHomeState extends State<MenopauseHome> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.2),
+                                  color: Colors.orange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(

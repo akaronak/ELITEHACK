@@ -25,11 +25,12 @@ class _AgoraVoiceChatScreenState extends State<AgoraVoiceChatScreen> {
   bool _isPlaying = false;
   String _recordingDuration = '0:00';
 
-  // Color palette
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleAccent = Color(0xFFD4C4E8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  Color get _purpleAccent => Theme.of(context).colorScheme.primary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
 
   @override
@@ -44,7 +45,7 @@ class _AgoraVoiceChatScreenState extends State<AgoraVoiceChatScreen> {
       // Initialize Agora AI
       const geminiApiKey = String.fromEnvironment(
         'GEMINI_API_KEY',
-        defaultValue: 'AIzaSyAfx795kOnCdA3aPFH2k4ESIFYbVDHEuY8',
+        defaultValue: '',
       );
       _agoraAIService = AgoraAIService(geminiApiKey: geminiApiKey);
 
@@ -232,7 +233,7 @@ Let's get started! Ask me anything! 💕''';
                 color: _purpleAccent.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.mic, color: _purpleAccent, size: 20),
+              child: Icon(Icons.mic, color: _purpleAccent, size: 20),
             ),
             const SizedBox(width: 12),
             Column(

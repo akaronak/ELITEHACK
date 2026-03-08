@@ -20,11 +20,13 @@ class _CycleInsightsScreenState extends State<CycleInsightsScreen> {
   int _cycleRegularity = 0;
   int _avgCycleLength = 28;
 
-  // Soft, calming colors
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _purpleAccent = Color(0xFFD4C4E8);
   static const Color _blueAccent = Color(0xFFA8D8EA);
@@ -86,7 +88,7 @@ class _CycleInsightsScreenState extends State<CycleInsightsScreen> {
           ),
           centerTitle: true,
         ),
-        body: const Center(child: CircularProgressIndicator(color: _darkPink)),
+        body: Center(child: CircularProgressIndicator(color: _darkPink)),
       );
     }
 

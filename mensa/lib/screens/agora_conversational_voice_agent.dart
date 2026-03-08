@@ -32,9 +32,10 @@ class _AgoraConversationalVoiceAgentState
   String _connectionStatus = 'Initializing...';
   final List<int> _remoteUids = [];
 
-  // Color palette
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleAccent = Color(0xFFD4C4E8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _purpleAccent => Theme.of(context).colorScheme.primary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
 
   @override

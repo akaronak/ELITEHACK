@@ -40,6 +40,7 @@ class AgoraTokenService {
         uid,
         RtcRole.PUBLISHER,
         expirationTimeInSeconds,
+        expirationTimeInSeconds,
       );
 
       console.log('✅ RTC token generated successfully');

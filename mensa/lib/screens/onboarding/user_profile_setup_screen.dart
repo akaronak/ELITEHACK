@@ -273,6 +273,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 32),
           TextFormField(
             controller: _nameController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Full Name *',
               prefixIcon: const Icon(Icons.person_outline),
@@ -290,6 +291,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _ageController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Age *',
               prefixIcon: const Icon(Icons.cake_outlined),
@@ -361,6 +363,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 32),
           TextFormField(
             controller: _heightController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Height *',
               prefixIcon: const Icon(Icons.height),
@@ -387,6 +390,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _weightController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Weight *',
               prefixIcon: const Icon(Icons.monitor_weight_outlined),
@@ -587,6 +591,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 32),
           TextFormField(
             controller: _emergencyContactController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Emergency Contact Name',
               prefixIcon: const Icon(Icons.person_outline),
@@ -598,6 +603,7 @@ class _UserProfileSetupScreenState extends State<UserProfileSetupScreen> {
           const SizedBox(height: 16),
           TextFormField(
             controller: _emergencyPhoneController,
+            style: const TextStyle(color: Colors.black87),
             decoration: InputDecoration(
               labelText: 'Emergency Contact Phone',
               prefixIcon: const Icon(Icons.phone_outlined),

@@ -78,6 +78,7 @@ class ThemeProvider extends ChangeNotifier {
     _loadTheme();
     _loadLanguage();
     _loadColorScheme();
+    notifyListeners(); // apply saved theme/color scheme on app launch
   }
 
   void _loadTheme() {
@@ -133,7 +134,6 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData getLightTheme() {
     final primary = _getColor('primary');
     final dark = _getColor('dark');
-    final light = _getColor('light');
     final background = _getColor('background');
 
     return ThemeData(
@@ -145,6 +145,7 @@ class ThemeProvider extends ChangeNotifier {
         primary: primary,
         secondary: dark,
         surface: Colors.white,
+        onSurface: Colors.black87,
         error: Colors.red,
       ),
       appBarTheme: AppBarTheme(
@@ -164,10 +165,25 @@ class ThemeProvider extends ChangeNotifier {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: light,
+        fillColor: Colors.white,
+        labelStyle: const TextStyle(color: Colors.black54),
+        floatingLabelStyle: TextStyle(color: dark),
+        hintStyle: const TextStyle(color: Colors.black38),
+        prefixIconColor: dark,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: primary.withValues(alpha: 0.6),
+            width: 1.2,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: dark, width: 2),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: primary, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -217,6 +233,9 @@ class ThemeProvider extends ChangeNotifier {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurface,
+        labelStyle: const TextStyle(color: Colors.white70),
+        floatingLabelStyle: TextStyle(color: primary),
+        hintStyle: const TextStyle(color: Colors.white38),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: dark, width: 1),

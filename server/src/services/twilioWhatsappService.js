@@ -7,7 +7,7 @@ class TwilioWhatsappService {
     this.authToken = process.env.TWILIO_AUTH_TOKEN;
     this.twilioPhoneNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
-    if (!this.accountSid || !this.authToken || !this.twilioPhoneNumber) {
+    if (!this.accountSid || !this.authToken || !this.twilioPhoneNumber || !this.accountSid.startsWith('AC')) {
       console.warn('⚠️ Twilio credentials not configured. WhatsApp notifications will be disabled.');
       this.client = null;
     } else {

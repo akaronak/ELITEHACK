@@ -21,11 +21,13 @@ class _WeeklyProgressScreenState extends State<WeeklyProgressScreen> {
   List<WeekData> _weekData = [];
   bool _isLoading = true;
 
-  // Modern color palette
-  static const Color _primaryPink = Color(0xFFFFB6C1);
-  static const Color _lightPink = Color(0xFFFFF0F5);
-  static const Color _accentPink = Color(0xFFFF69B4);
-  static const Color _backgroundColor = Color(0xFFFFFAFA);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  // Semantic data-visualization colors (fixed)
   static const Color _babyBlue = Color(0xFFB3E5FC);
   static const Color _softGreen = Color(0xFFC8E6C9);
 
@@ -82,7 +84,7 @@ class _WeeklyProgressScreenState extends State<WeeklyProgressScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _accentPink))
+          ? Center(child: CircularProgressIndicator(color: _accentPink))
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -216,14 +218,14 @@ class _WeeklyProgressScreenState extends State<WeeklyProgressScreen> {
                                             12,
                                           ),
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           children: [
                                             Icon(
                                               Icons.star,
                                               color: _accentPink,
                                               size: 16,
                                             ),
-                                            SizedBox(width: 4),
+                                            const SizedBox(width: 4),
                                             Text(
                                               'Current',
                                               style: TextStyle(

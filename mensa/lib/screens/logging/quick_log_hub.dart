@@ -16,10 +16,12 @@ class QuickLogHub extends StatefulWidget {
 }
 
 class _QuickLogHubState extends State<QuickLogHub> {
-  // Color palette
-  static const Color _primaryPurple = Color(0xFFD4C4E8);
-  static const Color _lightPurple = Color(0xFFF0E6FA);
-  static const Color _backgroundColor = Color(0xFFFAF5FF);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPurple => Theme.of(context).colorScheme.primary;
+  Color get _lightPurple =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _pinkAccent = Color(0xFFE8C4C4);
 

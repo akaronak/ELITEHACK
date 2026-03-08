@@ -19,11 +19,13 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   List<Appointment> _appointments = [];
   bool _isLoading = true;
 
-  // Modern mint/teal color palette
-  static const Color _primaryMint = Color(0xFF98D8C8);
-  static const Color _lightMint = Color(0xFFF0FFF8);
-  static const Color _darkMint = Color(0xFF66A896);
-  static const Color _backgroundColor = Color(0xFFF5FFF8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryMint => Theme.of(context).colorScheme.primary;
+  Color get _lightMint =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _darkMint => Theme.of(context).colorScheme.secondary;
+  // Semantic category accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _blueAccent = Color(0xFF64B5F6);
   static const Color _purpleAccent = Color(0xFFD4C4E8);
@@ -93,7 +95,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _primaryMint))
+          ? Center(child: CircularProgressIndicator(color: _primaryMint))
           : RefreshIndicator(
               onRefresh: _loadAppointments,
               color: _primaryMint,

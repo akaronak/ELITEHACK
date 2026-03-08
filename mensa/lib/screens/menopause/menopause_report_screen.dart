@@ -23,10 +23,13 @@ class _MenopauseReportScreenState extends State<MenopauseReportScreen> {
   Map<String, dynamic>? _report;
   String? _error;
 
-  static const Color _lightPurple = Color(0xFFF0E6FA);
-  static const Color _accentPurple = Color(0xFFD4C4E8);
-  static const Color _darkPurple = Color(0xFF9B7FC8);
-  static const Color _backgroundColor = Color(0xFFFAF5FF);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _lightPurple =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPurple => Theme.of(context).colorScheme.primary;
+  Color get _darkPurple => Theme.of(context).colorScheme.secondary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
 
   @override
@@ -559,7 +562,7 @@ class _MenopauseReportScreenState extends State<MenopauseReportScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

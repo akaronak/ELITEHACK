@@ -21,12 +21,13 @@ class _CycleSetupScreenState extends State<CycleSetupScreen> {
   int _averageCycleLength = 28;
   bool _isLoading = false;
 
-  // Soft, calming colors
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

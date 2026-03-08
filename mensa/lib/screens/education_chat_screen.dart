@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/chat_message.dart';
 import '../services/api_service.dart';
 import '../services/agora_ai_service.dart';
@@ -22,14 +23,16 @@ class _EducationChatScreenState extends State<EducationChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
-  final bool _useAgoraAI = true; // Toggle between Agora AI and backend
+  final bool _useAgoraAI =
+      false; // Route through backend to keep API key off device
 
-  // Modern color palette
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleAccent = Color(0xFFD4C4E8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  Color get _purpleAccent => Theme.of(context).colorScheme.primary;
 
   @override
   void initState() {
@@ -42,7 +45,7 @@ class _EducationChatScreenState extends State<EducationChatScreen> {
     // Get Gemini API key from environment or use fallback
     const geminiApiKey = String.fromEnvironment(
       'GEMINI_API_KEY',
-      defaultValue: 'AIzaSyAfx795kOnCdA3aPFH2k4ESIFYbVDHEuY8',
+      defaultValue: '',
     );
 
     _agoraAIService = AgoraAIService(geminiApiKey: geminiApiKey);
@@ -128,11 +131,28 @@ WHAT TO AVOID:
       String response;
 
       if (_useAgoraAI) {
-        // Use Agora AI (Gemini) for faster, more reliable responses
-        debugPrint('🤖 Using Agora AI (Gemini) for response');
+        // Build conversation history for multi-turn context
+        final historyMessages = _messages
+            .where((msg) => msg != _messages.first) // Exclude welcome
+            .toList();
+        final historySlice = historyMessages.length > 10
+            ? historyMessages.sublist(historyMessages.length - 10)
+            : historyMessages;
+        final history = historySlice.map((msg) {
+          if (msg.role == 'user') {
+            return Content.text(msg.content);
+          } else {
+            return Content.model([TextPart(msg.content)]);
+          }
+        }).toList();
+
+        debugPrint(
+          '🤖 Using Agora AI (Gemini) with ${history.length} history turns',
+        );
         response = await _agoraAIService.getEducationResponse(
           text,
           context: context,
+          history: history,
         );
       } else {
         // Fallback to backend API
@@ -212,11 +232,7 @@ WHAT TO AVOID:
                     color: _purpleAccent.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.school,
-                    color: _purpleAccent,
-                    size: 20,
-                  ),
+                  child: Icon(Icons.school, color: _purpleAccent, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Column(

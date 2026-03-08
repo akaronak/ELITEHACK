@@ -18,12 +18,13 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
 
-  // Soft, calming colors
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleMood = Color(0xFFD4C4E8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  Color get _purpleMood => Theme.of(context).colorScheme.primary;
 
   @override
   void initState() {
@@ -152,7 +153,7 @@ class _MenstruationAIChatScreenState extends State<MenstruationAIChatScreen> {
                 color: _purpleMood.withOpacity(0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, color: _purpleMood, size: 20),
+              child: Icon(Icons.smart_toy, color: _purpleMood, size: 20),
             ),
             const SizedBox(width: 12),
             const Column(

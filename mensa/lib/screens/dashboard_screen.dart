@@ -72,12 +72,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // Soft, calming colors matching menstruation screen
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  // Semantic category accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _purpleAccent = Color(0xFFD4C4E8);
   static const Color _yellowAccent = Color(0xFFF7E8C8);
@@ -85,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: _backgroundColor,
         body: Center(child: CircularProgressIndicator(color: _accentPink)),
       );
@@ -98,7 +100,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: _darkPink),
+              Icon(Icons.error_outline, size: 64, color: _darkPink),
               const SizedBox(height: 16),
               const Text(
                 'Unable to load profile',
@@ -138,7 +140,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: _backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.black87),
+          icon: Icon(
+            Icons.menu,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           onPressed: () {
             Navigator.push(
               context,
@@ -151,10 +156,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),
-        title: const Text(
+        title: Text(
           'Pregnancy Tracker',
           style: TextStyle(
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -163,7 +168,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           // Wallet Button
           IconButton(
-            icon: const Icon(Icons.wallet, color: Colors.black87),
+            icon: Icon(
+              Icons.wallet,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -176,7 +184,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           // Voucher Button
           IconButton(
-            icon: const Icon(Icons.card_giftcard, color: Colors.black87),
+            icon: Icon(
+              Icons.card_giftcard,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -188,7 +199,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             tooltip: 'Vouchers',
           ),
           IconButton(
-            icon: const Icon(Icons.history, color: Colors.black87),
+            icon: Icon(
+              Icons.history,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -257,9 +271,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_outlined,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () {},
           ),
@@ -305,10 +319,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Text(
                       'Week $currentWeek',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -316,7 +330,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       DateCalculatorService.getTrimesterName(trimester),
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -343,12 +359,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 32),
 
               // Quick Actions Section
-              const Text(
+              Text(
                 'Quick Actions',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 16),
@@ -521,12 +537,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // Upcoming Appointments Section
               if (_upcomingAppointments.isNotEmpty) ...[
-                const Text(
+                Text(
                   'Upcoming Appointments',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -562,7 +578,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             '${appointment.title} - ${appointment.formattedTime}, ${appointment.formattedDate}',
                             style: TextStyle(
                               fontSize: 15,
-                              color: Colors.black.withValues(alpha: 0.7),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -584,7 +602,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -593,17 +611,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           Text(
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.black.withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -636,10 +656,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

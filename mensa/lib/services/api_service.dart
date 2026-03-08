@@ -194,30 +194,50 @@ class ApiService {
     }
   }
 
-  // AI Chat
+  // AI Chat (pregnancy - uses chatAssistant with Gemini)
   Future<String?> sendChatMessage({
     required String userId,
     required String message,
     Map<String, dynamic>? context,
+    List<Map<String, dynamic>>? history,
   }) async {
     try {
+      // Try Ollama pregnancy chat first (has proper Gemini fallback)
       final response = await http.post(
-        Uri.parse('$baseUrl/ai/chat'),
+        Uri.parse('$baseUrl/ollama/chat/pregnancy'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': userId,
           'message': message,
-          'context': context,
+          'week': context?['week'] ?? 0,
+          'history': history ?? [],
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint('💬 Pregnancy response from ${data['source'] ?? 'unknown'}');
         return data['response'];
+      } else if (response.statusCode == 503) {
+        // Fallback to AI chat route
+        debugPrint('⚠️ Ollama unavailable, trying AI chat...');
+        final fallbackResponse = await http.post(
+          Uri.parse('$baseUrl/ai/chat'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'message': message,
+            'context': context,
+          }),
+        );
+        if (fallbackResponse.statusCode == 200) {
+          final data = jsonDecode(fallbackResponse.body);
+          return data['response'];
+        }
       }
       return null;
     } catch (e) {
-      print('Error sending chat message: $e');
+      debugPrint('Error sending chat message: $e');
       return null;
     }
   }

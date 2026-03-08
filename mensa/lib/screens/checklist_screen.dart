@@ -23,12 +23,14 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   Map<String, List<ChecklistStatus>> _checklistByWeek = {};
   bool _isLoading = true;
 
-  // Modern color palette
-  static const Color _primaryYellow = Color(0xFFF7E8C8);
-  static const Color _lightYellow = Color(0xFFFFFBE6);
-  static const Color _accentYellow = Color(0xFFF7DC6F);
-  static const Color _darkYellow = Color(0xFFD4A574);
-  static const Color _backgroundColor = Color(0xFFFFFAF0);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryYellow => Theme.of(context).colorScheme.primary;
+  Color get _lightYellow =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentYellow => Theme.of(context).colorScheme.primary;
+  Color get _darkYellow => Theme.of(context).colorScheme.secondary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
 
   @override
@@ -199,7 +201,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _accentYellow))
+          ? Center(child: CircularProgressIndicator(color: _accentYellow))
           : RefreshIndicator(
               onRefresh: _loadChecklist,
               color: _accentYellow,

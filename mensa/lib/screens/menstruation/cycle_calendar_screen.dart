@@ -30,11 +30,12 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
   String _lastPeriodDate = '--';
   int _cycleRegularity = 0;
 
-  // Colors
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
 
   @override
   void initState() {
@@ -136,7 +137,7 @@ class _CycleCalendarScreenState extends State<CycleCalendarScreen> {
           elevation: 0,
           foregroundColor: Colors.black87,
         ),
-        body: const Center(child: CircularProgressIndicator(color: _darkPink)),
+        body: Center(child: CircularProgressIndicator(color: _darkPink)),
       );
     }
 

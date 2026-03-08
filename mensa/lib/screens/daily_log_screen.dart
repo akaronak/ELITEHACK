@@ -21,12 +21,14 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   double _waterIntake = 8.0;
   final TextEditingController _weightController = TextEditingController();
 
-  // Modern color palette
-  static const Color _primaryPurple = Color(0xFFD4C4E8);
-  static const Color _lightPurple = Color(0xFFF5F0FF);
-  static const Color _accentPurple = Color(0xFFDDA0DD);
-  static const Color _darkPurple = Color(0xFFA67CA6);
-  static const Color _backgroundColor = Color(0xFFFFF5F7);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPurple => Theme.of(context).colorScheme.primary;
+  Color get _lightPurple =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPurple => Theme.of(context).colorScheme.primary;
+  Color get _darkPurple => Theme.of(context).colorScheme.secondary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
   static const Color _pinkAccent = Color(0xFFE8C4C4);
 
@@ -467,7 +469,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                               color: _primaryPurple.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.monitor_weight,
                               color: _darkPurple,
                               size: 20,

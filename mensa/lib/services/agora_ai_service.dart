@@ -22,18 +22,24 @@ class AgoraAIService {
     );
   }
 
-  /// Get conversational response from Gemini
+  /// Get conversational response from Gemini with history support
   Future<String> getEducationResponse(
     String userMessage, {
     Map<String, dynamic>? context,
+    List<Content>? history,
   }) async {
     try {
       final systemPrompt = _buildSystemPrompt(context);
-      final prompt = '$systemPrompt\n\nUser: $userMessage';
 
-      final content = [Content.text(prompt)];
-      final response = await _geminiModel.generateContent(content);
+      // Use startChat with history for proper multi-turn conversation
+      final chat = _geminiModel.startChat(
+        history: [
+          Content.model([TextPart(systemPrompt)]),
+          ...?history,
+        ],
+      );
 
+      final response = await chat.sendMessage(Content.text(userMessage));
       return response.text ?? 'Sorry, I could not process that.';
     } catch (e) {
       debugPrint('Error getting Gemini response: $e');

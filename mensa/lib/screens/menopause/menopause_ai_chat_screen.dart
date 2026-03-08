@@ -17,11 +17,12 @@ class _MenopauseAIChatScreenState extends State<MenopauseAIChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
 
-  // Soft, calming colors - Purple theme
-  static const Color _lightPurple = Color(0xFFF0E6FA);
-  static const Color _accentPurple = Color(0xFFD4C4E8);
-  static const Color _darkPurple = Color(0xFF9B7FC8);
-  static const Color _backgroundColor = Color(0xFFFAF5FF);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _lightPurple =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPurple => Theme.of(context).colorScheme.primary;
+  Color get _darkPurple => Theme.of(context).colorScheme.secondary;
 
   @override
   void initState() {
@@ -146,11 +147,7 @@ class _MenopauseAIChatScreenState extends State<MenopauseAIChatScreen> {
                 color: _accentPurple.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.smart_toy,
-                color: _accentPurple,
-                size: 20,
-              ),
+              child: Icon(Icons.smart_toy, color: _accentPurple, size: 20),
             ),
             const SizedBox(width: 12),
             const Column(

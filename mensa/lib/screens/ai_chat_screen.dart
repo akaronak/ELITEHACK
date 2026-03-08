@@ -33,12 +33,13 @@ class _AIChatScreenState extends State<AIChatScreen> {
   UserPregnancy? _pregnancyProfile;
   List<DailyLog> _recentLogs = [];
 
-  // Modern color palette
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _accentPink = Color(0xFFD4A5A5);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
-  static const Color _purpleAccent = Color(0xFFD4C4E8);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _accentPink => Theme.of(context).colorScheme.primary;
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  Color get _purpleAccent => Theme.of(context).colorScheme.primary;
 
   @override
   void initState() {
@@ -159,10 +160,27 @@ class _AIChatScreenState extends State<AIChatScreen> {
         }
       }
 
+      // Build conversation history (exclude welcome message, last 10 messages)
+      final conversationHistory = _messages
+          .where((msg) => msg != _messages.first) // Exclude welcome
+          .toList();
+      final historySlice = conversationHistory.length > 10
+          ? conversationHistory.sublist(conversationHistory.length - 10)
+          : conversationHistory;
+      final history = historySlice
+          .map(
+            (msg) => {
+              'role': msg.role == 'user' ? 'user' : 'model',
+              'content': msg.content,
+            },
+          )
+          .toList();
+
       final response = await _apiService.sendChatMessage(
         userId: widget.userId,
         message: text,
         context: context,
+        history: history,
       );
 
       if (response != null && mounted) {
@@ -230,11 +248,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 color: _purpleAccent.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.psychology,
-                color: _purpleAccent,
-                size: 20,
-              ),
+              child: Icon(Icons.psychology, color: _purpleAccent, size: 20),
             ),
             const SizedBox(width: 12),
             const Column(
@@ -262,7 +276,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         ),
       ),
       body: _isLoadingContext
-          ? const Center(child: CircularProgressIndicator(color: _accentPink))
+          ? Center(child: CircularProgressIndicator(color: _accentPink))
           : Column(
               children: [
                 // Disclaimer

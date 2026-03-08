@@ -1,152 +1,189 @@
-const { GoogleGenAI } = require('@google/genai');
+const axios = require('axios');
 
 class GeminiService {
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY;
+    this.model = 'gemini-2.5-flash';
+    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
     if (!this.apiKey) {
       console.warn('⚠️ GEMINI_API_KEY not found in environment variables');
-      this.ai = null;
     } else {
-      this.ai = new GoogleGenAI({ apiKey: this.apiKey });
-      console.log('✅ Gemini AI initialized');
+      console.log('✅ Gemini AI initialized (direct HTTP)');
     }
   }
 
+  get ai() {
+    return !!this.apiKey;
+  }
+
+  /**
+   * Call Gemini generateContent (non-streaming) via direct HTTP.
+   * Returns the model's text response.
+   */
   async generateResponse(prompt, context = {}) {
-    if (!this.ai) {
+    if (!this.apiKey) {
       throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in .env file');
     }
 
     try {
-      const fullPrompt = this._buildPrompt(prompt, context);
-      
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: fullPrompt,
-        config: {
+      const { systemInstruction, contents } = this._buildContents(prompt, context);
+
+      const url = `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const body = {
+        contents,
+        systemInstruction: {
+          parts: [{ text: systemInstruction }],
+        },
+        generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
-        }
+        },
+      };
+
+      const response = await axios.post(url, body, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000,
       });
-      
-      return response.text;
+
+      // Extract text from the standard generateContent response
+      const candidates = response.data?.candidates;
+      if (!candidates || candidates.length === 0) {
+        throw new Error('No candidates returned from Gemini');
+      }
+
+      const text = candidates[0]?.content?.parts
+        ?.map(p => p.text)
+        .join('') || '';
+
+      if (!text) {
+        throw new Error('Empty response from Gemini');
+      }
+
+      return text;
     } catch (error) {
-      console.error('Gemini API Error:', error);
-      throw new Error('Failed to generate AI response: ' + error.message);
+      console.error('Gemini API Error:', error.response?.data || error.message);
+      throw new Error('Failed to generate AI response: ' + (error.response?.data?.error?.message || error.message));
     }
   }
 
   async analyzeImage(base64Image, prompt) {
-    if (!this.ai) {
+    if (!this.apiKey) {
       throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in .env file');
     }
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+      const url = `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const body = {
         contents: [
           {
             role: 'user',
             parts: [
-              {
-                text: prompt,
-              },
-              {
-                inlineData: {
-                  mimeType: 'image/jpeg',
-                  data: base64Image,
-                },
-              },
+              { text: prompt },
+              { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
             ],
           },
         ],
-        config: {
+        generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
-        }
+        },
+      };
+
+      const response = await axios.post(url, body, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000,
       });
-      
-      return response.text;
+
+      return response.data?.candidates?.[0]?.content?.parts
+        ?.map(p => p.text).join('') || '';
     } catch (error) {
-      console.error('Gemini Image Analysis Error:', error);
-      throw new Error('Failed to analyze image: ' + error.message);
+      console.error('Gemini Image Analysis Error:', error.response?.data || error.message);
+      throw new Error('Failed to analyze image: ' + (error.response?.data?.error?.message || error.message));
     }
   }
 
   async analyzeDocument(base64Data, prompt, mimeType = 'image/jpeg') {
-    if (!this.ai) {
+    if (!this.apiKey) {
       throw new Error('Gemini AI not initialized. Please set GEMINI_API_KEY in .env file');
     }
 
     try {
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+      const url = `${this.baseUrl}/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const body = {
         contents: [
           {
             role: 'user',
             parts: [
-              {
-                text: prompt,
-              },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data,
-                },
-              },
+              { text: prompt },
+              { inlineData: { mimeType, data: base64Data } },
             ],
           },
         ],
-        config: {
+        generationConfig: {
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
-        }
+        },
+      };
+
+      const response = await axios.post(url, body, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000,
       });
-      
-      return response.text;
+
+      return response.data?.candidates?.[0]?.content?.parts
+        ?.map(p => p.text).join('') || '';
     } catch (error) {
-      console.error('Gemini Document Analysis Error:', error);
-      throw new Error('Failed to analyze document: ' + error.message);
+      console.error('Gemini Document Analysis Error:', error.response?.data || error.message);
+      throw new Error('Failed to analyze document: ' + (error.response?.data?.error?.message || error.message));
     }
   }
 
-  _buildPrompt(userMessage, context) {
-    const systemPrompt = this._getSystemPrompt(context.type || 'general');
+  _buildContents(userMessage, context) {
+    let systemInstruction = this._getSystemPrompt(context.type || 'general');
     
-    let fullPrompt = systemPrompt + '\n\n';
-    
-    // Add user profile context if available
+    // Append user profile context to system instruction
     if (context.userData) {
-      fullPrompt += `User Profile:\n`;
-      if (context.userData.age) fullPrompt += `- Age: ${context.userData.age}\n`;
-      if (context.userData.bmi) fullPrompt += `- BMI: ${context.userData.bmi}\n`;
+      systemInstruction += '\n\nUser Profile:';
+      if (context.userData.age) systemInstruction += `\n- Age: ${context.userData.age}`;
+      if (context.userData.bmi) systemInstruction += `\n- BMI: ${context.userData.bmi}`;
+      if (context.userData.week) systemInstruction += `\n- Pregnancy Week: ${context.userData.week}`;
+      if (context.userData.trimester) systemInstruction += `\n- Trimester: ${context.userData.trimester}`;
       if (context.userData.medical_conditions && context.userData.medical_conditions.length > 0) {
-        fullPrompt += `- Medical Conditions: ${context.userData.medical_conditions.join(', ')}\n`;
+        systemInstruction += `\n- Medical Conditions: ${context.userData.medical_conditions.join(', ')}`;
       }
       if (context.userData.allergies && context.userData.allergies.length > 0) {
-        fullPrompt += `- Allergies: ${context.userData.allergies.join(', ')}\n`;
+        systemInstruction += `\n- Allergies: ${context.userData.allergies.join(', ')}`;
       }
-      fullPrompt += '\n';
     }
     
-    // Add conversation history for context
+    // Build multi-turn contents array from conversation history
+    const contents = [];
+    
     if (context.history && context.history.length > 0) {
-      fullPrompt += 'Previous conversation:\n';
-      context.history.forEach(msg => {
-        const role = msg.role === 'user' ? 'User' : 'Assistant';
-        fullPrompt += `${role}: ${msg.content}\n\n`;
-      });
+      for (const msg of context.history) {
+        contents.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }],
+        });
+      }
     }
     
-    fullPrompt += `User: ${userMessage}\n\nAssistant:`;
+    // Add current user message as the final turn
+    contents.push({
+      role: 'user',
+      parts: [{ text: userMessage }],
+    });
     
-    return fullPrompt;
+    return { systemInstruction, contents };
   }
 
   _getSystemPrompt(type) {

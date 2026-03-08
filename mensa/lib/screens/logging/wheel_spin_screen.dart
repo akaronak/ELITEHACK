@@ -22,9 +22,10 @@ class _WheelSpinScreenState extends State<WheelSpinScreen>
   String? _selectedMood;
   String? _selectedSymptom;
 
-  // Color palette
-  static const Color _primaryPurple = Color(0xFFD4C4E8);
-  static const Color _backgroundColor = Color(0xFFFAF5FF);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPurple => Theme.of(context).colorScheme.primary;
+  // Semantic accent colors (fixed)
   static const Color _greenAccent = Color(0xFFB8D4C8);
 
   final List<String> _moods = [

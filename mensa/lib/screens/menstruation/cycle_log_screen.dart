@@ -21,11 +21,13 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
   bool _isSaving = false;
   int _currentCycleDay = 1;
 
-  // Soft, calming colors
-  static const Color _primaryPink = Color(0xFFE8C4C4);
-  static const Color _lightPink = Color(0xFFF5E6E6);
-  static const Color _darkPink = Color(0xFFA67C7C);
-  static const Color _backgroundColor = Color(0xFFFAF5F5);
+  // Theme-responsive color getters
+  Color get _backgroundColor => Theme.of(context).scaffoldBackgroundColor;
+  Color get _primaryPink => Theme.of(context).colorScheme.primary;
+  Color get _lightPink =>
+      Theme.of(context).colorScheme.primary.withValues(alpha: 0.2);
+  Color get _darkPink => Theme.of(context).colorScheme.secondary;
+  // Semantic mood colors (fixed)
   static const Color _greenMood = Color(0xFFB8D4C8);
   static const Color _purpleMood = Color(0xFFD4C4E8);
 
@@ -135,7 +137,7 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
                       color: _primaryPink.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.calendar_today,
                       color: _darkPink,
                       size: 24,
@@ -165,7 +167,7 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.edit, color: _darkPink),
+                    icon: Icon(Icons.edit, color: _darkPink),
                     onPressed: () async {
                       final date = await showDatePicker(
                         context: context,
@@ -226,7 +228,7 @@ class _CycleLogScreenState extends State<CycleLogScreen> {
                               color: _primaryPink.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.water_drop,
                               color: _darkPink,
                               size: 20,

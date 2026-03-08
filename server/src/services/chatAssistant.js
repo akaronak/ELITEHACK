@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const ChatMemory = require('../models/chatMemory.model');
+const geminiService = require('./geminiService');
 
 class ChatAssistant {
   constructor() {
@@ -21,16 +22,38 @@ class ChatAssistant {
     // Store user message
     ChatMemory.addMessage(userId, 'user', message);
 
+    // Get conversation history for Gemini context
+    const memoryHistory = ChatMemory.getMessages(userId) || [];
+    const history = memoryHistory.slice(-10).map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      content: msg.content,
+    }));
+
+    // Use Gemini for all responses to avoid canned/repeated answers
+    try {
+      if (geminiService.ai) {
+        const response = await geminiService.chatPregnancy(
+          userId,
+          message,
+          context.week || 0,
+          history,
+        );
+        ChatMemory.addMessage(userId, 'ai', response);
+        return response;
+      }
+    } catch (error) {
+      console.warn('Gemini failed in chatAssistant, using fallback:', error.message);
+    }
+
+    // Fallback: keyword-based responses only when Gemini is unavailable
     const messageLower = message.toLowerCase();
 
-    // Detect mood/emotional content
     if (this.containsMoodKeywords(messageLower)) {
       const response = this.handleMoodMessage(messageLower, context);
       ChatMemory.addMessage(userId, 'ai', response);
       return response;
     }
 
-    // Check FAQ
     const faqMatch = this.findFAQMatch(messageLower);
     if (faqMatch) {
       const response = `${faqMatch.answer}\n\n${this.getDisclaimer()}`;
@@ -38,7 +61,6 @@ class ChatAssistant {
       return response;
     }
 
-    // General supportive response
     const response = this.getGeneralResponse(messageLower, context);
     ChatMemory.addMessage(userId, 'ai', response);
     return response;
